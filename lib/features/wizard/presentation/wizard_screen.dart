@@ -5,11 +5,11 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_gradients.dart';
 import '../../../core/constants/ui_constants.dart';
-import '../../../core/widgets/inputs/gradient_button.dart';
+import '../../../core/router/route_names.dart';
 import '../../wizard/providers/wizard_providers.dart';
 import '../../wizard/presentation/widgets/wizard_step_progress.dart';
 import 'steps/step1_identity.dart';
@@ -67,25 +67,135 @@ class _WizardScreenState extends ConsumerState<WizardScreen> {
     });
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: const Color(0xFF03050A),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: AppGradients.splashMeshColors,
+            colors: [
+              Color(0xFF060913),
+              Color(0xFF03050A),
+            ],
           ),
         ),
         child: SafeArea(
           child: Column(
             children: [
+              // ── Top Header Bar ──
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Spacing.lg,
+                  vertical: Spacing.md,
+                ),
+                child: Row(
+                  children: [
+                    // Back button
+                    GestureDetector(
+                      onTap: () {
+                        if (stepIndex == 0) {
+                          context.pop();
+                        } else {
+                          ref.read(wizardProvider.notifier).previousStep();
+                        }
+                      },
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFF0F172A),
+                          border: Border.all(
+                            color: const Color(0xFF1E293B),
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    // Title & Subtitle
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Create New Replica',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Build your Digital Human step by step',
+                          style: GoogleFonts.inter(
+                            color: const Color(0xFF64748B),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    // Import JSON Button
+                    GestureDetector(
+                      onTap: () => context.push(RouteNames.import),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Color(0xFF8B5CF6), Color(0xFF00E5FF)],
+                            ),
+                          ),
+                          padding: const EdgeInsets.all(1.2),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              color: const Color(0xFF0F172A),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.cloud_upload_outlined,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Import JSON',
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               // ── Step Progress ──
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                   Spacing.lg,
+                  Spacing.xs,
                   Spacing.lg,
-                  Spacing.lg,
-                  Spacing.sm,
+                  Spacing.md,
                 ),
                 child: WizardStepProgress(
                   currentStep: stepIndex,
@@ -93,6 +203,7 @@ class _WizardScreenState extends ConsumerState<WizardScreen> {
                   completedSteps: wizard.completedSteps.length,
                 ),
               ),
+              const SizedBox(height: Spacing.sm),
 
               // ── Page Content ──
               Expanded(
@@ -104,71 +215,9 @@ class _WizardScreenState extends ConsumerState<WizardScreen> {
                   }).toList(),
                 ),
               ),
-
-              // ── Bottom Bar ──
-              _buildBottomBar(currentStep, stepIndex),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildBottomBar(WizardStep currentStep, int stepIndex) {
-    final isLastStep = currentStep == WizardStep.review;
-    final isFirstStep = currentStep == WizardStep.identity;
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(
-        Spacing.lg,
-        Spacing.sm,
-        Spacing.lg,
-        Spacing.lg,
-      ),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: AppColors.glassBorder),
-        ),
-      ),
-      child: Row(
-        children: [
-          // Back button (hidden on first step)
-          if (!isFirstStep) ...[
-            Expanded(
-              child: GradientButton.secondary(
-                label: 'Back',
-                icon: const Icon(Icons.arrow_back_rounded, size: 18),
-                onPressed: () {
-                  // Only call the notifier — ref.listen handles page animation.
-                  ref.read(wizardProvider.notifier).previousStep();
-                },
-              ),
-            ),
-            const SizedBox(width: Spacing.md),
-          ],
-
-          // Next / Complete button
-          Expanded(
-            flex: isFirstStep ? 2 : 1,
-            child: GradientButton(
-              label: isLastStep ? 'Activate Digital Human' : 'Continue',
-              icon: Icon(
-                isLastStep
-                    ? Icons.rocket_launch_rounded
-                    : Icons.arrow_forward_rounded,
-                size: 18,
-              ),
-              onPressed: () {
-                if (isLastStep) {
-                  ref.read(wizardProvider.notifier).completeWizard();
-                } else {
-                  // Only call the notifier — ref.listen handles page animation.
-                  ref.read(wizardProvider.notifier).nextStep();
-                }
-              },
-            ),
-          ),
-        ],
       ),
     );
   }

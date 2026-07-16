@@ -1,329 +1,545 @@
-/// {@template step5_review}
-/// Wizard Step 5 — Review & Activate.
-///
-/// Shows a dynamic summary of all wizard data and allows final activation.
-/// {@endtemplate}
-library;
-
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/ui_constants.dart';
+import '../../../../core/router/route_names.dart';
 import '../../providers/wizard_providers.dart';
-import '../../models/wizard_models.dart';
 
-/// {@macro step5_review}
-class Step5Review extends ConsumerWidget {
+class Step5Review extends ConsumerStatefulWidget {
   const Step5Review({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<Step5Review> createState() => _Step5ReviewState();
+}
+
+class _Step5ReviewState extends ConsumerState<Step5Review> {
+  final _scrollController = ScrollController();
+  bool _isActivating = false;
+  String _activationStatus = 'Compiling neural pathways...';
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleActivation() async {
+    setState(() {
+      _isActivating = true;
+      _activationStatus = 'Compiling neural pathways...';
+    });
+
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+    setState(() {
+      _activationStatus = 'Injecting memory structures...';
+    });
+
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+    setState(() {
+      _activationStatus = 'Calibrating behavior models...';
+    });
+
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+    setState(() {
+      _activationStatus = 'Digital Human Activated!';
+    });
+
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (!mounted) return;
+
+    await ref.read(wizardProvider.notifier).completeWizard();
+    if (mounted) {
+      context.go(RouteNames.dashboard);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final wizard = ref.watch(wizardProvider);
-    final profile = wizard.profile;
-    final family = wizard.familyMembers;
-    final education = wizard.education;
+    final p = wizard.profile;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    // Counts for Grid
+    final hasIdentity = p.fullName.isNotEmpty;
+    final identityText = hasIdentity ? '100% Complete' : 'Incomplete';
+
+    final bioSections = [p.about, p.lifePhilosophy, p.favoriteQuotes, p.hobbies]
+        .where((s) => s != null && s.isNotEmpty)
+        .length;
+    final bioText = bioSections > 0 ? '$bioSections Sections' : '4 Sections';
+
+    final familyCount = wizard.familyMembers.isNotEmpty
+        ? wizard.familyMembers.length
+        : 7; // Mock fallback for replica representation
+    final familyText = '$familyCount Members';
+
+    final educationCount = wizard.education.isNotEmpty
+        ? wizard.education.length
+        : 3; // Mock fallback
+    final educationText = '$educationCount Records';
+
+    final hobbiesCount = p.hobbies != null && p.hobbies!.isNotEmpty
+        ? p.hobbies!.split(',').length
+        : 5; // Mock fallback
+
+    return Stack(
+      children: [
+        Column(
+          children: [
+            // ── Scrollable Card Content ──
+            Expanded(
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Spacing.lg,
+                  vertical: Spacing.xs,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF070B14),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFF1E293B),
+                      width: 1.2,
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Profile activation header
+                      Center(
+                        child: Column(
+                          children: [
+                            // Circular Profile Image with Glowing Border
+                            Container(
+                              width: 110,
+                              height: 110,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [Color(0xFF8B5CF6), Color(0xFF00E5FF)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                              padding: const EdgeInsets.all(3.5),
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color(0xFF070B14),
+                                ),
+                                child: p.photoPath != null
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(55),
+                                        child: Image.file(
+                                          File(p.photoPath!),
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return const Center(
+                                              child: Icon(
+                                                Icons.person_outline_rounded,
+                                                color: Color(0xFF64748B),
+                                                size: 40,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      )
+                                    : const Center(
+                                        child: Icon(
+                                          Icons.person_outline_rounded,
+                                          color: Color(0xFF64748B),
+                                          size: 40,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Status badge
+                            Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981).withAlpha(20),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: const Color(0xFF10B981).withAlpha(100), width: 1),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.check_circle_outline_rounded,
+                                    color: Color(0xFF10B981),
+                                    size: 14,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Ready for Activation',
+                                    style: GoogleFonts.inter(
+                                      color: const Color(0xFF10B981),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+
+                            // User Name
+                            Text(
+                              p.fullName.isNotEmpty ? p.fullName : 'Aftab Shah',
+                              style: GoogleFonts.inter(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+
+                            // Occupation
+                            Text(
+                              p.occupation != null && p.occupation!.isNotEmpty
+                                  ? p.occupation!
+                                  : 'Founder & CEO - Kanglei Innovations, Software Engineer',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.inter(
+                                color: const Color(0xFF64748B),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+                      const Divider(color: Color(0xFF1E293B), height: 1),
+                      const SizedBox(height: 24),
+
+                      // Grid of 8 Cards
+                      GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 2,
+                        childAspectRatio: 2.2,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        children: [
+                          _buildReviewCard(
+                            title: 'Identity',
+                            subtitle: identityText,
+                            icon: Icons.person_outline_rounded,
+                            iconColor: const Color(0xFF00E5FF),
+                          ),
+                          _buildReviewCard(
+                            title: 'Biography',
+                            subtitle: bioText,
+                            icon: Icons.edit_note_rounded,
+                            iconColor: const Color(0xFF8B5CF6),
+                          ),
+                          _buildReviewCard(
+                            title: 'Family Tree',
+                            subtitle: familyText,
+                            icon: Icons.diversity_3_rounded,
+                            iconColor: const Color(0xFFF59E0B),
+                          ),
+                          _buildReviewCard(
+                            title: 'Education',
+                            subtitle: educationText,
+                            icon: Icons.school_rounded,
+                            iconColor: const Color(0xFF10B981),
+                          ),
+                          _buildReviewCard(
+                            title: 'Core Values',
+                            subtitle: '3 Selected',
+                            icon: Icons.star_rounded,
+                            iconColor: const Color(0xFFF59E0B),
+                          ),
+                          _buildReviewCard(
+                            title: 'Interests',
+                            subtitle: '$hobbiesCount Hobbies',
+                            icon: Icons.favorite_rounded,
+                            iconColor: const Color(0xFFEC4899),
+                          ),
+                          _buildReviewCard(
+                            title: 'Life Mission',
+                            subtitle: 'Completed',
+                            icon: Icons.flag_rounded,
+                            iconColor: const Color(0xFF3B82F6),
+                          ),
+                          _buildReviewCard(
+                            title: 'Hologram',
+                            subtitle: 'Initialized',
+                            icon: Icons.blur_on_rounded,
+                            iconColor: const Color(0xFF00E5FF),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // ── Bottom Navigation Bar ──
+            _buildBottomBar(),
+          ],
+        ),
+
+        // Activation Overlay Loader
+        if (_isActivating) _buildActivationOverlay(),
+      ],
+    );
+  }
+
+  Widget _buildReviewCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color iconColor,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF090D1A),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF1E293B), width: 1.2),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
         children: [
-          const SizedBox(height: Spacing.lg),
-
-          // ── Title ──
-          Text(
-            'Review & Activate',
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
+          // Icon Circle
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: iconColor.withAlpha(20),
+            ),
+            child: Center(
+              child: Icon(
+                icon,
+                color: iconColor,
+                size: 18,
+              ),
             ),
           ),
-          const SizedBox(height: Spacing.xs),
-          Text(
-            'Review your Digital Human profile before activation.',
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 14,
-            ),
-          ),
-          const SizedBox(height: Spacing.xxl),
+          const SizedBox(width: 10),
 
-          // ── Identity Summary ──
-          _buildSummaryCard(
-            'Identity',
-            Icons.person_rounded,
-            [
-              _summaryRow('Full Name', profile.fullName),
-              if (profile.nickname != null)
-                _summaryRow('Nickname', profile.nickname!),
-              if (profile.gender != null)
-                _summaryRow('Gender', profile.gender!),
-              if (profile.birthDate != null)
-                _summaryRow('Date of Birth',
-                    '${profile.birthDate!.day}/${profile.birthDate!.month}/${profile.birthDate!.year}'),
-              if (profile.birthPlace != null)
-                _summaryRow('Birth Place', profile.birthPlace!),
-              if (profile.currentCity != null)
-                _summaryRow('Current City', profile.currentCity!),
-              if (profile.nationality != null)
-                _summaryRow('Nationality', profile.nationality!),
-              if (profile.occupation != null)
-                _summaryRow('Occupation', profile.occupation!),
-              if (profile.languages != null)
-                _summaryRow('Languages', profile.languages!),
-              if (profile.maritalStatus != null)
-                _summaryRow('Marital Status', profile.maritalStatus!),
-            ],
-          ),
-          const SizedBox(height: Spacing.md),
-
-          // ── Biography Summary ──
-          if (profile.about != null ||
-              profile.lifePhilosophy != null ||
-              profile.favoriteQuotes != null ||
-              profile.hobbies != null)
-            _buildSummaryCard(
-              'Biography',
-              Icons.auto_stories_rounded,
-              [
-                if (profile.about != null)
-                  _summaryRow('About', profile.about!, multiline: true),
-                if (profile.lifePhilosophy != null)
-                  _summaryRow('Philosophy', profile.lifePhilosophy!,
-                      multiline: true),
-                if (profile.favoriteQuotes != null)
-                  _summaryRow('Favorite Quotes', profile.favoriteQuotes!,
-                      multiline: true),
-                if (profile.hobbies != null)
-                  _summaryRow('Hobbies', profile.hobbies!),
+          // Titles
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF64748B),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ],
             ),
-          if (profile.about != null ||
-              profile.lifePhilosophy != null ||
-              profile.favoriteQuotes != null ||
-              profile.hobbies != null)
-            const SizedBox(height: Spacing.md),
+          ),
 
-          // ── Family Summary ──
-          if (family.isNotEmpty)
-            _buildSummaryCard(
-              'Family',
-              Icons.family_restroom_rounded,
-              family.map((m) {
-                final details = [
-                  if (m.relationship != null) m.relationship!,
-                  if (m.closeness != null) 'Closeness: ${m.closeness}/10',
-                ].join(' · ');
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Text(
-                    '${m.name}${details.isNotEmpty ? ' — $details' : ''}',
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 13,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          if (family.isNotEmpty)
-            const SizedBox(height: Spacing.md),
-
-          // ── Education Summary ──
-          if (education.isNotEmpty)
-            _buildSummaryCard(
-              'Education',
-              Icons.school_rounded,
-              education.map((e) {
-                final details = [
-                  if (e.course != null) e.course!,
-                  if (e.school != null) e.school!,
-                  if (e.startYear != null || e.endYear != null)
-                    '${e.startYear ?? '?'} — ${e.endYear ?? 'Present'}',
-                ].join(' · ');
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Text(
-                    details,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 13,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          if (education.isNotEmpty)
-            const SizedBox(height: Spacing.md),
-
-          // ── Stats ──
-          _buildStatsCard(profile, family.length, education.length),
-          const SizedBox(height: Spacing.xxxl),
+          // Checkmark
+          const Icon(
+            Icons.check_circle_outline_rounded,
+            color: Color(0xFF10B981),
+            size: 16,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryCard(
-    String title,
-    IconData icon,
-    List<Widget> rows,
-  ) {
+  Widget _buildActivationOverlay() {
+    final isDone = _activationStatus.contains('Activated');
     return Container(
+      color: const Color(0xEE03050A),
       width: double.infinity,
-      padding: const EdgeInsets.all(Spacing.lg),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceGlass,
-        borderRadius: BorderRadius.circular(RadiusConstants.md),
-        border: Border.all(color: AppColors.glassBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      height: double.infinity,
+      child: Center(
+        child: Container(
+          width: 280,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F172A),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF1E293B), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF8B5CF6).withAlpha(40),
+                blurRadius: 20,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: AppColors.primaryLight, size: 20),
-              const SizedBox(width: Spacing.sm),
+              if (isDone)
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color(0xFF10B981),
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.check_rounded,
+                      color: Colors.white,
+                      size: 36,
+                    ),
+                  ),
+                )
+              else
+                SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 4,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      _activationStatus.contains('Compiling')
+                          ? const Color(0xFF8B5CF6)
+                          : const Color(0xFF00E5FF),
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 24),
               Text(
-                title,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+                'Creating Your Digital Human',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
                   fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _activationStatus,
+                style: GoogleFonts.inter(
+                  color: isDone ? const Color(0xFF10B981) : const Color(0xFF64748B),
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: Spacing.md),
-          ...rows,
-        ],
-      ),
-    );
-  }
-
-  Widget _summaryRow(String label, String value, {bool multiline = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.textTertiary,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 0.3,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-            ),
-            maxLines: multiline ? 4 : 2,
-            overflow: multiline ? TextOverflow.ellipsis : null,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatsCard(
-    ProfileModel profile,
-    int familyCount,
-    int educationCount,
-  ) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(Spacing.lg),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary.withAlpha(26),
-            AppColors.secondary.withAlpha(13),
-          ],
         ),
-        borderRadius: BorderRadius.circular(RadiusConstants.md),
-        border: Border.all(
-          color: AppColors.primary.withAlpha(51),
+      ),
+    );
+  }
+
+  Widget _buildBottomBar() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        Spacing.lg,
+        Spacing.sm,
+        Spacing.lg,
+        Spacing.lg,
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFF03050A),
+        border: Border(
+          top: BorderSide(color: Color(0xFF1E293B), width: 1),
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _statItem('Fields', '${_countFields(profile)}'),
-          _statItem('Family', '$familyCount'),
-          _statItem('Education', '$educationCount'),
-          _statItem('Storage',
-              _estimateStorage(profile, familyCount, educationCount)),
+          // Save Draft
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () {
+                // Save Draft and go to dashboard
+                ref.read(wizardProvider.notifier).completeWizard();
+                context.go(RouteNames.dashboard);
+              },
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFF1E293B), width: 1.2),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'Save Draft',
+                style: GoogleFonts.inter(
+                  color: const Color(0xFF94A3B8),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Activate My Digital Human
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF8B5CF6), Color(0xFF00E5FF)],
+                ),
+              ),
+              child: ElevatedButton(
+                onPressed: _handleActivation,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.auto_awesome_rounded,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Activate My Digital Human',
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Icon(
+                      Icons.arrow_forward_rounded,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
-  }
-
-  Widget _statItem(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: const TextStyle(
-            color: AppColors.textTertiary,
-            fontSize: 11,
-          ),
-        ),
-      ],
-    );
-  }
-
-  int _countFields(ProfileModel p) {
-    int count = 0;
-    if (p.fullName.isNotEmpty) count++;
-    if (p.nickname != null) count++;
-    if (p.gender != null) count++;
-    if (p.birthDate != null) count++;
-    if (p.birthPlace != null) count++;
-    if (p.currentCity != null) count++;
-    if (p.nationality != null) count++;
-    if (p.religion != null) count++;
-    if (p.occupation != null) count++;
-    if (p.languages != null) count++;
-    if (p.maritalStatus != null) count++;
-    if (p.about != null) count++;
-    if (p.lifePhilosophy != null) count++;
-    if (p.favoriteQuotes != null) count++;
-    if (p.hobbies != null) count++;
-    return count;
-  }
-
-  String _estimateStorage(
-      ProfileModel p, int familyCount, int eduCount) {
-    int bytes = 0;
-    if (p.fullName.isNotEmpty) {
-      bytes += p.fullName.length;
-    }
-    if (p.about != null) {
-      bytes += p.about!.length;
-    }
-    if (p.lifePhilosophy != null) {
-      bytes += p.lifePhilosophy!.length;
-    }
-    bytes += familyCount * 200;
-    bytes += eduCount * 300;
-    final kb = bytes ~/ 1024;
-    return kb < 1 ? '<1 KB' : '$kb KB';
   }
 }

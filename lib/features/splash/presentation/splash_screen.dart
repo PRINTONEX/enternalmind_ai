@@ -150,7 +150,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       case SplashState.noProfile:
         context.go(RouteNames.welcome);
       case SplashState.ready:
-        context.go(RouteNames.welcome);
+        context.go(RouteNames.dashboard);
       default:
         break;
     }
@@ -224,29 +224,23 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             SafeArea(
               child: Center(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Spacer(flex: 2),
+                    const Spacer(flex: 3),
 
-                    // ── Neural Orb (neural_head.png) ──
-                    _buildNeuralHead(),
+                    // ── Neural Ring Image ──
+                    _buildNeuralRing(),
 
                     const SizedBox(height: Spacing.xxl),
 
                     // ── Title ──
                     _buildTitle(),
 
-                    const SizedBox(height: Spacing.xs),
+                    const SizedBox(height: Spacing.sm),
 
                     // ── Subtitle ──
                     _buildSubtitle(),
 
-                    const SizedBox(height: Spacing.xxxl),
-
-                    // ── Action buttons (shown after loading animation delay) ──
-                    _buildActionButtons(),
-
-                    const Spacer(flex: 1),
+                    const Spacer(flex: 3),
 
                     // ── Bottom section (loading status or version info) ──
                     splashAsync.when(
@@ -260,7 +254,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       ),
                     ),
 
-                    const SizedBox(height: Spacing.md),
+                    const SizedBox(height: Spacing.lg),
                   ],
                 ),
               ),
@@ -271,8 +265,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
   }
 
-  /// Builds the animated neural head logo from the asset image.
-  Widget _buildNeuralHead() {
+  /// Builds the animated neural ring logo from the asset image.
+  Widget _buildNeuralRing() {
     return AnimatedBuilder(
       animation: _orbController,
       builder: (context, _) {
@@ -281,78 +275,34 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           child: Transform.scale(
             scale: _orbBreathing.value,
             child: Container(
-              width: 140,
-              height: 140,
+              width: 160,
+              height: 160,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.primary.withAlpha(
-                      (40 * _orbGlow.value).round(),
+                      (35 * _orbGlow.value).round(),
                     ),
-                    blurRadius: 32 * _orbGlow.value,
-                    spreadRadius: 6 * _orbGlow.value,
+                    blurRadius: 40 * _orbGlow.value,
+                    spreadRadius: 4 * _orbGlow.value,
                   ),
                   BoxShadow(
                     color: AppColors.secondary.withAlpha(
                       (20 * _orbGlow.value).round(),
                     ),
-                    blurRadius: 48 * _orbGlow.value,
-                    spreadRadius: 10 * _orbGlow.value,
-                  ),
-                  BoxShadow(
-                    color: AppColors.accent.withAlpha(
-                      (10 * _orbGlow.value).round(),
-                    ),
-                    blurRadius: 64 * _orbGlow.value,
-                    spreadRadius: 14 * _orbGlow.value,
+                    blurRadius: 56 * _orbGlow.value,
+                    spreadRadius: 6 * _orbGlow.value,
                   ),
                 ],
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(70),
-                child: Image.asset(
-                  'assets/splash/neural_head.png',
-                  width: 140,
-                  height: 140,
-                  fit: BoxFit.cover,
-                ),
+              child: Image.asset(
+                'assets/splash/neural_ring.png',
+                width: 160,
+                height: 160,
+                fit: BoxFit.contain,
               ),
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Builds the action text buttons (Import Replica, Create Replica).
-  Widget _buildActionButtons() {
-    return AnimatedBuilder(
-      animation: _textController,
-      builder: (context, _) {
-        return Opacity(
-          opacity: _subtitleFadeIn.value,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Create Replica button
-              _GlassTextButton(
-                label: 'Create Replica',
-                icon: Icons.add_circle_outline_rounded,
-                onTap: () {
-                  if (mounted) context.go(RouteNames.wizard);
-                },
-              ),
-              const SizedBox(height: Spacing.md),
-              // Import Replica button
-              _GlassTextButton(
-                label: 'Import Replica',
-                icon: Icons.download_outlined,
-                onTap: () {
-                  if (mounted) context.go(RouteNames.import);
-                },
-              ),
-            ],
           ),
         );
       },
@@ -524,71 +474,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 }
 
-// ────────────────────────────────────────────────────────────
-// Glass Text Button
-// ────────────────────────────────────────────────────────────
-
-/// A premium glass-style text action button used on the splash screen.
-class _GlassTextButton extends StatelessWidget {
-  const _GlassTextButton({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 280),
-        padding: const EdgeInsets.symmetric(
-          horizontal: Spacing.lg,
-          vertical: Spacing.md,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceInput.withAlpha(180),
-          borderRadius: BorderRadius.circular(RadiusConstants.sm + 2),
-          border: Border.all(
-            color: AppColors.glassBorder.withAlpha(60),
-            width: 1.2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withAlpha(13),
-              blurRadius: 8,
-              spreadRadius: 1,
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: AppColors.textSecondary,
-              size: 18,
-            ),
-            const SizedBox(width: Spacing.sm + 2),
-            Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.4,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // ────────────────────────────────────────────────────────────
 // Animated Mesh Gradient Background

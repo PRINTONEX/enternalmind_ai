@@ -24,4 +24,22 @@ abstract final class RouteNames {
 
   /// Profile detail route.
   static const String profileDetail = '/profile/:id';
+
+  /// AI Providers route.
+  static const String aiProviders = '/ai_providers';
+
+  /// Timeline route.
+  static const String timeline = '/timeline';
+
+  /// Family Tree route.
+  static const String familyTree = '/family_tree';
+
+  /// Memories Vault route.
+  static const String memories = '/memories';
+
+  /// Voice Space route.
+  static const String voiceSpace = '/voicespace';
+
+  /// Settings route.
+  static const String settings = '/settings';
 }

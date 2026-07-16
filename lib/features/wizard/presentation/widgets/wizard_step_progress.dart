@@ -1,14 +1,7 @@
-/// {@template wizard_step_progress}
-/// Visual step progress indicator for the wizard.
-/// {@endtemplate}
-library;
-
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_gradients.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/ui_constants.dart';
 
-/// {@macro wizard_step_progress}
 class WizardStepProgress extends StatelessWidget {
   const WizardStepProgress({
     super.key,
@@ -31,104 +24,124 @@ class WizardStepProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final progress = currentStep / (totalSteps - 1);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Step dots + labels
-        Row(
-          children: List.generate(totalSteps, (index) {
-            final isActive = index == currentStep;
-            final isCompleted = index < completedSteps;
-            return Expanded(
-              child: GestureDetector(
-                onTap: null, // non-interactive for now
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Dot
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: isActive || isCompleted
-                            ? AppGradients.neonPurple
-                            : null,
-                        color: isActive || isCompleted
-                            ? null
-                            : AppColors.surfaceElevated,
-                        border: Border.all(
-                          color: isActive
-                              ? AppColors.primary
-                              : isCompleted
-                                  ? AppColors.primary.withAlpha(128)
-                                  : AppColors.glassBorder,
-                          width: isActive ? 2 : 1.5,
+        Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            // Connector line background (grey)
+            Positioned(
+              left: 40,
+              right: 40,
+              top: 16, // Center of dot vertically
+              child: Container(
+                height: 1.5,
+                color: const Color(0xFF1E293B),
+              ),
+            ),
+            // Connector line progress (violet to cyan gradient)
+            Positioned(
+              left: 40,
+              right: 40,
+              top: 16, // Center of dot vertically
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      height: 1.5,
+                      width: constraints.maxWidth * progress,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF8B5CF6), Color(0xFF00E5FF)],
                         ),
-                        boxShadow: isActive
-                            ? [
-                                BoxShadow(
-                                  color: AppColors.primary.withAlpha(77),
-                                  blurRadius: 8,
-                                  spreadRadius: 1,
-                                ),
-                              ]
-                            : [],
-                      ),
-                      child: Center(
-                        child: isCompleted
-                            ? const Icon(Icons.check_rounded,
-                                color: Colors.white, size: 16)
-                            : Text(
-                                '${index + 1}',
-                                style: TextStyle(
-                                  color: isActive
-                                      ? Colors.white
-                                      : AppColors.textSecondary,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    // Label
-                    if (index < _stepLabels.length)
-                      Text(
-                        _stepLabels[index],
-                        style: TextStyle(
-                          color: isActive
-                              ? AppColors.textPrimary
-                              : AppColors.textTertiary,
-                          fontSize: 10,
-                          fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                  );
+                },
+              ),
+            ),
+            // Row of steps
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(totalSteps, (index) {
+                final isActive = index == currentStep;
+                final isCompleted = index < currentStep;
+
+                return Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Step Dot
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isCompleted
+                              ? const Color(0xFF8B5CF6)
+                              : const Color(0xFF090D1A),
+                          border: Border.all(
+                            color: isActive
+                                ? const Color(0xFF8B5CF6)
+                                : isCompleted
+                                    ? const Color(0xFF8B5CF6)
+                                    : const Color(0xFF1E293B),
+                            width: isActive ? 2 : 1.5,
+                          ),
+                          boxShadow: isActive
+                              ? [
+                                  BoxShadow(
+                                    color: const Color(0xFF8B5CF6).withAlpha(80),
+                                    blurRadius: 10,
+                                    spreadRadius: 2,
+                                  ),
+                                ]
+                              : [],
+                        ),
+                        child: Center(
+                          child: isCompleted
+                              ? const Icon(
+                                  Icons.check_rounded,
+                                  color: Colors.white,
+                                  size: 16,
+                                )
+                              : Text(
+                                  '${index + 1}',
+                                  style: GoogleFonts.inter(
+                                    color: isActive
+                                        ? Colors.white
+                                        : const Color(0xFF64748B),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                         ),
                       ),
-                  ],
-                ),
-              ),
-            );
-          }),
-        ),
-
-        // Connecting line
-        const SizedBox(height: Spacing.sm),
-        Row(
-          children: List.generate(totalSteps - 1, (index) {
-            return Expanded(
-              child: Container(
-                height: 2,
-                decoration: BoxDecoration(
-                  gradient: index < completedSteps
-                      ? AppGradients.neonPurple
-                      : null,
-                  color: index < completedSteps
-                      ? null
-                      : AppColors.glassBorder,
-                ),
-              ),
-            );
-          }),
+                      const SizedBox(height: Spacing.sm),
+                      // Step Label
+                      if (index < _stepLabels.length)
+                        Text(
+                          _stepLabels[index],
+                          style: GoogleFonts.inter(
+                            color: (isActive || isCompleted)
+                                ? const Color(0xFF8B5CF6)
+                                : const Color(0xFF64748B),
+                            fontSize: 11,
+                            fontWeight: (isActive || isCompleted)
+                                ? FontWeight.w600
+                                : FontWeight.w500,
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              }),
+            ),
+          ],
         ),
       ],
     );

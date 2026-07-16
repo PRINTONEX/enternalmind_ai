@@ -42,4 +42,26 @@ class HumanDao {
       ..limit(1);
     return query.getSingleOrNull();
   }
+
+  /// Watch the last active profile — emits a new value whenever
+  /// the humans table changes.
+  Stream<HumansTableData?> watchLastActive() {
+    return (_db.select(_db.humansTable)
+          ..orderBy([
+            (t) => OrderingTerm(
+                  expression: t.updatedAt,
+                  mode: OrderingMode.desc,
+                ),
+          ])
+          ..limit(1))
+        .watch()
+        .map((rows) => rows.isEmpty ? null : rows.first);
+  }
+
+  /// Watch a single human by ID.
+  Stream<HumansTableData?> watchHuman(int id) {
+    return (_db.select(_db.humansTable)..where((t) => t.id.equals(id)))
+        .watch()
+        .map((rows) => rows.isEmpty ? null : rows.first);
+  }
 }

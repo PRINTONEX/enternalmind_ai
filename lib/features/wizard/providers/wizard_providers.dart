@@ -7,29 +7,154 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../database/daos/human_dao.dart';
 import '../../../database/daos/family_dao.dart';
 import '../../../database/daos/education_dao.dart';
+import '../../../database/daos/career_dao.dart';
+import '../../../database/daos/content_dao.dart';
+import '../../../database/daos/profile_extras_dao.dart';
+import '../../../database/daos/personality_dao.dart';
+import '../../../database/daos/ai_dao.dart';
 import '../../../providers/database_providers.dart';
 import '../models/wizard_models.dart';
 
 // ── Database Providers ──
 
-/// Provider for HumanDao.
 final humanDaoProvider = Provider<HumanDao>((ref) {
   return HumanDao(ref.watch(appDatabaseProvider));
 });
 
-/// Provider for FamilyDao.
 final familyDaoProvider = Provider<FamilyDao>((ref) {
   return FamilyDao(ref.watch(appDatabaseProvider));
 });
 
-/// Provider for EducationDao.
 final educationDaoProvider = Provider<EducationDao>((ref) {
   return EducationDao(ref.watch(appDatabaseProvider));
 });
 
+final careerDaoProvider = Provider<CareerDao>((ref) {
+  return CareerDao(ref.watch(appDatabaseProvider));
+});
+
+// ── Content DAO Providers ──
+
+final lifeStoriesDaoProvider = Provider<LifeStoriesDao>((ref) {
+  return LifeStoriesDao(ref.watch(appDatabaseProvider));
+});
+
+final timelineDaoProvider = Provider<TimelineDao>((ref) {
+  return TimelineDao(ref.watch(appDatabaseProvider));
+});
+
+final dailyJournalsDaoProvider = Provider<DailyJournalsDao>((ref) {
+  return DailyJournalsDao(ref.watch(appDatabaseProvider));
+});
+
+final memoriesDaoProvider = Provider<MemoriesDao>((ref) {
+  return MemoriesDao(ref.watch(appDatabaseProvider));
+});
+
+final photosDaoProvider = Provider<PhotosDao>((ref) {
+  return PhotosDao(ref.watch(appDatabaseProvider));
+});
+
+final photoAlbumsDaoProvider = Provider<PhotoAlbumsDao>((ref) {
+  return PhotoAlbumsDao(ref.watch(appDatabaseProvider));
+});
+
+final documentsDaoProvider = Provider<DocumentsDao>((ref) {
+  return DocumentsDao(ref.watch(appDatabaseProvider));
+});
+
+final audioFilesDaoProvider = Provider<AudioFilesDao>((ref) {
+  return AudioFilesDao(ref.watch(appDatabaseProvider));
+});
+
+final voiceSettingsDaoProvider = Provider<VoiceSettingsDao>((ref) {
+  return VoiceSettingsDao(ref.watch(appDatabaseProvider));
+});
+
+final legacyMessagesDaoProvider = Provider<LegacyMessagesDao>((ref) {
+  return LegacyMessagesDao(ref.watch(appDatabaseProvider));
+});
+
+final memoryTagsDaoProvider = Provider<MemoryTagsDao>((ref) {
+  return MemoryTagsDao(ref.watch(appDatabaseProvider));
+});
+
+// ── Profile Extras DAO Providers ──
+
+final skillsDaoProvider = Provider<SkillsDao>((ref) {
+  return SkillsDao(ref.watch(appDatabaseProvider));
+});
+
+final languagesDaoProvider = Provider<LanguagesDao>((ref) {
+  return LanguagesDao(ref.watch(appDatabaseProvider));
+});
+
+final interestsDaoProvider = Provider<InterestsDao>((ref) {
+  return InterestsDao(ref.watch(appDatabaseProvider));
+});
+
+final goalsDaoProvider = Provider<GoalsDao>((ref) {
+  return GoalsDao(ref.watch(appDatabaseProvider));
+});
+
+final lifePlacesDaoProvider = Provider<LifePlacesDao>((ref) {
+  return LifePlacesDao(ref.watch(appDatabaseProvider));
+});
+
+final favoritesDaoProvider = Provider<FavoritesDao>((ref) {
+  return FavoritesDao(ref.watch(appDatabaseProvider));
+});
+
+final favoriteQuotesDaoProvider = Provider<FavoriteQuotesDao>((ref) {
+  return FavoriteQuotesDao(ref.watch(appDatabaseProvider));
+});
+
+final favoriteWordsDaoProvider = Provider<FavoriteWordsDao>((ref) {
+  return FavoriteWordsDao(ref.watch(appDatabaseProvider));
+});
+
+// ── Personality DAO Providers ──
+
+final personalityTraitsDaoProvider = Provider<PersonalityTraitsDao>((ref) {
+  return PersonalityTraitsDao(ref.watch(appDatabaseProvider));
+});
+
+final conversationStylesDaoProvider = Provider<ConversationStylesDao>((ref) {
+  return ConversationStylesDao(ref.watch(appDatabaseProvider));
+});
+
+final dailyHabitsDaoProvider = Provider<DailyHabitsDao>((ref) {
+  return DailyHabitsDao(ref.watch(appDatabaseProvider));
+});
+
+final valuesBeliefsDaoProvider = Provider<ValuesBeliefsDao>((ref) {
+  return ValuesBeliefsDao(ref.watch(appDatabaseProvider));
+});
+
+final decisionProfilesDaoProvider = Provider<DecisionProfilesDao>((ref) {
+  return DecisionProfilesDao(ref.watch(appDatabaseProvider));
+});
+
+// ── AI DAO Providers ──
+
+final aiProvidersDaoProvider = Provider<AiProvidersDao>((ref) {
+  return AiProvidersDao(ref.watch(appDatabaseProvider));
+});
+
+final aiSettingsDaoProvider = Provider<AiSettingsDao>((ref) {
+  return AiSettingsDao(ref.watch(appDatabaseProvider));
+});
+
+final avatarsDaoProvider = Provider<AvatarsDao>((ref) {
+  return AvatarsDao(ref.watch(appDatabaseProvider));
+});
+
+final chatHistoryDaoProvider = Provider<ChatHistoryDao>((ref) {
+  return ChatHistoryDao(ref.watch(appDatabaseProvider));
+});
+
 // ── Wizard State ──
 
-/// The five steps of the wizard.
 enum WizardStep {
   identity,
   biography,
@@ -38,7 +163,6 @@ enum WizardStep {
   review,
 }
 
-/// Complete wizard form state.
 class WizardState {
   WizardState({
     this.currentStep = WizardStep.identity,
@@ -88,7 +212,6 @@ class WizardState {
   }
 }
 
-/// The wizard state notifier with auto-save and resume logic.
 class WizardNotifier extends StateNotifier<WizardState> {
   WizardNotifier(this._ref) : super(WizardState());
 
@@ -98,9 +221,6 @@ class WizardNotifier extends StateNotifier<WizardState> {
   FamilyDao get _familyDao => _ref.read(familyDaoProvider);
   EducationDao get _educationDao => _ref.read(educationDaoProvider);
 
-  // ── Initialization & Resume ──
-
-  /// Attempts to resume a partially-completed wizard from the last active profile.
   Future<void> tryResume() async {
     final lastActive = await _humanDao.getLastActive();
     if (lastActive == null) return;
@@ -121,17 +241,11 @@ class WizardNotifier extends StateNotifier<WizardState> {
     );
   }
 
-  // ── Profile (Steps 1 & 2) ──
-
-  /// Updates the profile model with new data.
   void updateProfile(ProfileModel updated) {
     state = state.copyWith(profile: updated);
     _autoSaveProfile();
   }
 
-  // ── Family (Step 3) ──
-
-  /// Adds a new family member.
   void addFamilyMember(FamilyMemberModel member) {
     state = state.copyWith(
       familyMembers: [...state.familyMembers, member],
@@ -139,7 +253,6 @@ class WizardNotifier extends StateNotifier<WizardState> {
     _autoSaveFamily();
   }
 
-  /// Updates an existing family member.
   void updateFamilyMember(int index, FamilyMemberModel updated) {
     final members = [...state.familyMembers];
     if (index < members.length) {
@@ -149,7 +262,6 @@ class WizardNotifier extends StateNotifier<WizardState> {
     }
   }
 
-  /// Removes a family member.
   void removeFamilyMember(int index) {
     final members = [...state.familyMembers];
     if (index < members.length) {
@@ -159,9 +271,6 @@ class WizardNotifier extends StateNotifier<WizardState> {
     }
   }
 
-  // ── Education (Step 4) ──
-
-  /// Adds a new education record.
   void addEducation(EducationModel edu) {
     state = state.copyWith(
       education: [...state.education, edu],
@@ -169,7 +278,6 @@ class WizardNotifier extends StateNotifier<WizardState> {
     _autoSaveEducation();
   }
 
-  /// Updates an existing education record.
   void updateEducation(int index, EducationModel updated) {
     final list = [...state.education];
     if (index < list.length) {
@@ -179,7 +287,6 @@ class WizardNotifier extends StateNotifier<WizardState> {
     }
   }
 
-  /// Removes an education record.
   void removeEducation(int index) {
     final list = [...state.education];
     if (index < list.length) {
@@ -189,9 +296,6 @@ class WizardNotifier extends StateNotifier<WizardState> {
     }
   }
 
-  // ── Navigation ──
-
-  /// Advances to the next step, saving the current step's data.
   Future<void> nextStep() async {
     final steps = WizardStep.values;
     final currentIndex = steps.indexOf(state.currentStep);
@@ -204,7 +308,6 @@ class WizardNotifier extends StateNotifier<WizardState> {
     }
   }
 
-  /// Goes back to the previous step.
   void previousStep() {
     final steps = WizardStep.values;
     final currentIndex = steps.indexOf(state.currentStep);
@@ -213,15 +316,16 @@ class WizardNotifier extends StateNotifier<WizardState> {
     }
   }
 
-  /// Completes the wizard — final save and activation.
   Future<void> completeWizard() async {
     await _saveCurrentStep();
+    final activeId = state.activeProfileId;
+    if (activeId != null) {
+      _ref.read(activeProfileIdProvider.notifier).state = activeId;
+    }
     state = state.copyWith(
       completedSteps: {...state.completedSteps, WizardStep.review},
     );
   }
-
-  // ── Auto-Save Logic ──
 
   Future<void> _saveCurrentStep() async {
     await _saveProfile();
@@ -298,7 +402,6 @@ class WizardNotifier extends StateNotifier<WizardState> {
   }
 }
 
-/// Provider for the wizard state notifier.
 final wizardProvider = StateNotifierProvider<WizardNotifier, WizardState>((ref) {
   final notifier = WizardNotifier(ref);
   notifier.tryResume();

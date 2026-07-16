@@ -35,4 +35,14 @@ class EducationDao {
       (_db.delete(_db.educationTable)
             ..where((t) => t.humanId.equals(humanId)))
           .go();
+
+  /// Watch education records for a human in realtime.
+  Stream<List<EducationTableData>> watchEducation(int humanId) =>
+      (_db.select(_db.educationTable)
+            ..where((t) => t.humanId.equals(humanId)))
+          .watch();
+
+  /// Watch the count of education records for a human in realtime.
+  Stream<int> watchEducationCount(int humanId) =>
+      watchEducation(humanId).map((list) => list.length);
 }

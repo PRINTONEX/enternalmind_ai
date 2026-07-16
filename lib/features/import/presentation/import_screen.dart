@@ -7,14 +7,14 @@
 /// {@endtemplate}
 library;
 
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/ui_constants.dart';
+import '../../../core/router/route_names.dart';
 import '../../../core/widgets/glass_card.dart';
 import '../../../core/widgets/inputs/gradient_button.dart';
 import '../providers/import_providers.dart';
@@ -74,26 +74,23 @@ class _ImportScreenState extends ConsumerState<ImportScreen>
 
   Future<void> _pickFile() async {
     try {
-      final result = await FilePicker.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['json'],
-        withData: true,
+      final XFile? file = await openFile(
+        acceptedTypeGroups: [
+          XTypeGroup(
+            label: 'JSON backup files',
+            extensions: ['json'],
+          ),
+        ],
       );
-      if (result == null || result.files.isEmpty) return;
+      if (file == null) return;
 
-      final file = result.files.first;
-      final filePath = file.path;
       final fileName = file.name;
-
-      if (filePath == null) {
-        _showError('Could not access the selected file.');
-        return;
-      }
+      final filePath = file.path;
 
       // Show loading state during file read
       ref.read(importProvider.notifier).setLoading(true);
 
-      final contents = await File(filePath).readAsString();
+      final contents = await file.readAsString();
       if (!mounted) return;
 
       await ref.read(importProvider.notifier).selectFile(
@@ -135,95 +132,114 @@ class _ImportScreenState extends ConsumerState<ImportScreen>
   Widget build(BuildContext context) {
     final state = ref.watch(importProvider);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF070B16),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── AppBar ──
-            _buildAppBar(),
+    // ── Navigate to dashboard on import success ──
+    ref.listen(importProvider, (ImportState? prev, ImportState next) {
+      if (next.importSuccess && !(prev?.importSuccess ?? false) && mounted) {
+        Future.delayed(const Duration(milliseconds: 1200), () {
+          if (mounted) context.go(RouteNames.dashboard);
+        });
+      }
+    });
 
-            // ── Loading overlay during file read ──
-            if (state.isLoading)
-              const LinearProgressIndicator(
-                backgroundColor: Colors.transparent,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8A2EFF)),
-                minHeight: 2,
-              ),
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: const Color(0xFF070B16),
+          body: SafeArea(
+            child: Column(
+              children: [
+                // ── AppBar ──
+                _buildAppBar(),
 
-            // ── Scrollable Content ──
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: Spacing.md),
+                // ── Loading overlay during file read ──
+                if (state.isLoading)
+                  const LinearProgressIndicator(
+                    backgroundColor: Colors.transparent,
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8A2EFF)),
+                    minHeight: 2,
+                  ),
 
-                    // ── Title Section ──
-                    _buildTitleSection(),
+                // ── Scrollable Content ──
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: Spacing.md),
 
-                    const SizedBox(height: Spacing.xxl),
+                        // ── Title Section ──
+                        _buildTitleSection(),
 
-                    // ── Step Progress ──
-                    _buildStepProgress(state.currentStep),
+                        const SizedBox(height: Spacing.xxl),
 
-                    const SizedBox(height: Spacing.xxl),
+                        // ── Upload Area (hidden after file selected) ──
+                        if (state.selectedFileName == null)
+                          _buildUploadArea(),
 
-                    // ── Upload Area ──
-                    _buildUploadArea(),
+                        if (state.selectedFileName == null)
+                          const SizedBox(height: Spacing.lg),
 
-                    const SizedBox(height: Spacing.lg),
+                        // ── Selected File Card ──
+                        if (state.selectedFileName != null)
+                          FadeTransition(
+                            opacity: _fadeController,
+                            child: _buildSelectedFileCard(state),
+                          ),
 
-                    // ── Selected File Card ──
-                    if (state.selectedFileName != null)
-                      FadeTransition(
-                        opacity: _fadeController,
-                        child: _buildSelectedFileCard(state),
-                      ),
+                        if (state.selectedFileName != null)
+                          const SizedBox(height: Spacing.lg),
 
-                    if (state.selectedFileName != null)
-                      const SizedBox(height: Spacing.lg),
+                        // ── Validation Error Card ──
+                        if (state.selectedFileName != null &&
+                            state.backupData == null &&
+                            !state.isLoading)
+                          _buildErrorCard(),
 
-                    // ── Validation Error Card ──
-                    if (state.selectedFileName != null &&
-                        state.backupData == null &&
-                        !state.isLoading)
-                      _buildErrorCard(),
+                        if (state.selectedFileName != null &&
+                            state.backupData == null &&
+                            !state.isLoading)
+                          const SizedBox(height: Spacing.lg),
 
-                    if (state.selectedFileName != null &&
-                        state.backupData == null &&
-                        !state.isLoading)
-                      const SizedBox(height: Spacing.lg),
+                        // ── Backup Preview Card ──
+                        if (state.backupData != null)
+                          FadeTransition(
+                            opacity: _fadeController,
+                            child: _buildBackupPreviewCard(state.backupData!),
+                          ),
 
-                    // ── Backup Preview Card ──
-                    if (state.backupData != null)
-                      FadeTransition(
-                        opacity: _fadeController,
-                        child: _buildBackupPreviewCard(state.backupData!),
-                      ),
+                        if (state.backupData != null)
+                          const SizedBox(height: Spacing.lg),
 
-                    if (state.backupData != null)
-                      const SizedBox(height: Spacing.lg),
+                        // ── Security Card ──
+                        if (state.backupData != null)
+                          FadeTransition(
+                            opacity: _fadeController,
+                            child: _buildSecurityCard(),
+                          ),
 
-                    // ── Security Card ──
-                    if (state.backupData != null)
-                      FadeTransition(
-                        opacity: _fadeController,
-                        child: _buildSecurityCard(),
-                      ),
-
-                    const SizedBox(height: Spacing.xxl),
-                  ],
+                        const SizedBox(height: Spacing.xxl),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
 
-            // ── Bottom Action Buttons ──
-            if (state.selectedFileName != null) _buildBottomButtons(state),
-          ],
+                // ── Bottom Action Buttons ──
+                if (state.selectedFileName != null && !state.importSuccess)
+                  _buildBottomButtons(state),
+
+                // ── Import Success — show button to go to dashboard ──
+                if (state.importSuccess)
+                  _buildSuccessPanel(state),
+              ],
+            ),
+          ),
         ),
-      ),
+
+        // ── Import Progress Overlay ──
+        if (state.isImporting)
+          _buildImportOverlay(),
+      ],
     );
   }
 
@@ -313,107 +329,6 @@ class _ImportScreenState extends ConsumerState<ImportScreen>
           ),
         ),
       ],
-    );
-  }
-
-  // ── Step Progress ──
-  Widget _buildStepProgress(ImportStep currentStep) {
-    final steps = [
-      ImportStep.selectFile,
-      ImportStep.preview,
-      ImportStep.importing,
-    ];
-    final labels = ['Select File', 'Preview', 'Import'];
-    final currentIndex = steps.indexOf(currentStep);
-
-    return Row(
-      children: List.generate(3, (index) {
-        final isActive = index == currentIndex;
-        final isCompleted = index < currentIndex;
-        return Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: isActive || isCompleted
-                          ? const LinearGradient(
-                              colors: [Color(0xFF8A2EFF), Color(0xFF00D9FF)])
-                          : null,
-                      color:
-                          isActive || isCompleted ? null : AppColors.surfaceElevated,
-                      border: Border.all(
-                        color: isActive
-                            ? const Color(0xFF8A2EFF)
-                            : isCompleted
-                                ? const Color(0xFF8A2EFF).withAlpha(128)
-                                : AppColors.glassBorder,
-                        width: isActive ? 2 : 1.5,
-                      ),
-                      boxShadow: isActive
-                          ? [
-                              BoxShadow(
-                                color: const Color(0xFF8A2EFF).withAlpha(77),
-                                blurRadius: 8,
-                                spreadRadius: 1,
-                              ),
-                            ]
-                          : [],
-                    ),
-                    child: Center(
-                      child: isCompleted
-                          ? const Icon(Icons.check_rounded,
-                              color: Colors.white, size: 14)
-                          : Text(
-                              '${index + 1}',
-                              style: TextStyle(
-                                color: isActive
-                                    ? Colors.white
-                                    : AppColors.textSecondary,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                    ),
-                  ),
-                  if (index < 2)
-                    Expanded(
-                      child: Container(
-                        height: 2,
-                        margin: const EdgeInsets.symmetric(horizontal: 6),
-                        decoration: BoxDecoration(
-                          gradient: isCompleted
-                              ? const LinearGradient(
-                                  colors: [
-                                    Color(0xFF8A2EFF),
-                                    Color(0xFF00D9FF),
-                                  ],
-                                )
-                              : null,
-                          color: isCompleted ? null : AppColors.glassBorder,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                labels[index],
-                style: TextStyle(
-                  color: isActive ? Colors.white : AppColors.textTertiary,
-                  fontSize: 10,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                ),
-              ),
-            ],
-          ),
-        );
-      }),
     );
   }
 
@@ -1083,6 +998,77 @@ class _ImportScreenState extends ConsumerState<ImportScreen>
                   ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ── Import Success Panel ──
+  Widget _buildSuccessPanel(ImportState state) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        Spacing.lg,
+        Spacing.sm,
+        Spacing.lg,
+        Spacing.lg,
+      ),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: AppColors.glassBorder),
+        ),
+      ),
+      child: GradientButton(
+        label: 'Go to Dashboard',
+        icon: const Icon(Icons.dashboard_rounded, size: 18),
+        onPressed: () => context.go(RouteNames.dashboard),
+      ),
+    );
+  }
+
+  // ── Import Progress Overlay ──
+  Widget _buildImportOverlay() {
+    return Container(
+      color: const Color(0xFF070B16).withAlpha(200),
+      child: Center(
+        child: GlassCard(
+          borderRadius: 24,
+          padding: const EdgeInsets.symmetric(
+            vertical: Spacing.massive,
+            horizontal: Spacing.xxxl,
+          ),
+          glowColor: const Color(0xFF8A2EFF),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                width: 48,
+                height: 48,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8A2EFF)),
+                ),
+              ),
+              const SizedBox(height: Spacing.xl),
+              const Text(
+                'Importing Your Digital Human',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: Spacing.sm),
+              Text(
+                'Writing profile, family, education\nand career records to local database...',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

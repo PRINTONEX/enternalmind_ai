@@ -18,6 +18,13 @@ import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/onboarding/presentation/welcome_screen.dart';
 import '../../features/wizard/presentation/wizard_screen.dart';
 import '../../features/import/presentation/import_screen.dart';
+import '../../features/dashboard/presentation/dashboard_screen.dart';
+import '../../features/ai_providers/presentation/ai_providers_screen.dart';
+import '../../features/timeline/presentation/timeline_screen.dart';
+import '../../features/family_tree/presentation/family_tree_screen.dart';
+import '../../features/memories/presentation/memories_screen.dart';
+import '../../features/voice_space/presentation/voice_space_screen.dart';
+import '../../features/settings/presentation/settings_screen.dart';
 import 'route_names.dart';
 
 /// Creates and returns the GoRouter configuration.
@@ -55,14 +62,7 @@ GoRouter createRouter() {
       GoRoute(
         path: RouteNames.dashboard,
         name: 'dashboard',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text(
-              'Dashboard',
-              style: TextStyle(color: Colors.white, fontSize: 20),
-            ),
-          ),
-        ),
+        builder: (context, state) => const DashboardScreen(),
       ),
 
       GoRoute(
@@ -79,6 +79,42 @@ GoRouter createRouter() {
             ),
           );
         },
+      ),
+
+      GoRoute(
+        path: RouteNames.aiProviders,
+        name: 'aiProviders',
+        builder: (context, state) => const AiProvidersScreen(),
+      ),
+
+      GoRoute(
+        path: RouteNames.timeline,
+        name: 'timeline',
+        builder: (context, state) => const TimelineScreen(),
+      ),
+
+      GoRoute(
+        path: RouteNames.familyTree,
+        name: 'familyTree',
+        builder: (context, state) => const FamilyTreeScreen(),
+      ),
+
+      GoRoute(
+        path: RouteNames.memories,
+        name: 'memories',
+        builder: (context, state) => const MemoriesScreen(),
+      ),
+
+      GoRoute(
+        path: RouteNames.voiceSpace,
+        name: 'voiceSpace',
+        builder: (context, state) => const VoiceSpaceScreen(),
+      ),
+
+      GoRoute(
+        path: RouteNames.settings,
+        name: 'settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
 

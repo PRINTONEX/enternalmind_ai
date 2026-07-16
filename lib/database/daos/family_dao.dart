@@ -36,4 +36,14 @@ class FamilyDao {
       (_db.delete(_db.familyMembersTable)
             ..where((t) => t.humanId.equals(humanId)))
           .go();
+
+  /// Watch family members for a human in realtime.
+  Stream<List<FamilyMembersTableData>> watchFamilyMembers(int humanId) =>
+      (_db.select(_db.familyMembersTable)
+            ..where((t) => t.humanId.equals(humanId)))
+          .watch();
+
+  /// Watch the count of family members for a human in realtime.
+  Stream<int> watchFamilyCount(int humanId) =>
+      watchFamilyMembers(humanId).map((list) => list.length);
 }

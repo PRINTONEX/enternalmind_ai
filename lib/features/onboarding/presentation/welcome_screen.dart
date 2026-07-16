@@ -9,10 +9,10 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/ui_constants.dart';
 import '../../../core/router/route_names.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/floating_particles.dart';
 
 /// {@macro welcome_screen}
@@ -71,22 +71,22 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF060913),
+      backgroundColor: const Color(0xFF03050A),
       body: Stack(
         children: [
-          // ── Subtle blue radial glow ──
+          // ── Subtle blue/purple radial glow behind the head ──
           Positioned(
             top: -100,
             left: -100,
             right: -100,
             child: Container(
-              height: 400,
+              height: 450,
               decoration: BoxDecoration(
                 gradient: RadialGradient(
                   center: Alignment.center,
                   radius: 0.6,
                   colors: [
-                    const Color(0xFF3B82F6).withAlpha(15),
+                    const Color(0xFF7C3AED).withAlpha(12),
                     Colors.transparent,
                   ],
                 ),
@@ -96,9 +96,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
           // ── Floating particles ──
           const FloatingParticles(
-            particleCount: 8,
-            minSpeed: 0.15,
-            maxSpeed: 0.4,
+            particleCount: 12,
+            minSpeed: 0.1,
+            maxSpeed: 0.35,
             minSize: 1.0,
             maxSize: 2.5,
           ),
@@ -107,55 +107,69 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           SafeArea(
             child: FadeTransition(
               opacity: _fadeController,
-              child: Column(
-                children: [
-                  const Spacer(flex: 2),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Column(
+                          children: [
+                            const Spacer(flex: 3),
 
-                  // ── Neural Ring Image ──
-                  _buildNeuralRing(),
+                            // ── Neural Head Image ──
+                            _buildNeuralHead(),
 
-                  const SizedBox(height: Spacing.xxl),
+                            const Spacer(flex: 2),
 
-                  // ── Title: EternalMind AI ──
-                  _buildGradientTitle(),
+                            // ── Title: EternalMind AI ──
+                            _buildGradientTitle(),
 
-                  const SizedBox(height: Spacing.sm),
+                            const SizedBox(height: Spacing.sm),
 
-                  // ── Subtitle ──
-                  _buildSubtitle(),
+                            // ── Subtitle ──
+                            _buildSubtitle(),
 
-                  const SizedBox(height: Spacing.lg),
+                            const SizedBox(height: Spacing.md),
 
-                  // ── Decorative divider ──
-                  _buildDivider(),
+                            // ── Decorative divider ──
+                            _buildDivider(),
 
-                  const SizedBox(height: Spacing.lg),
+                            const SizedBox(height: Spacing.xxl),
 
-                  // ── Tagline ──
-                  _buildTagline(),
+                            // ── Tagline ──
+                            _buildTagline(),
 
-                  const SizedBox(height: Spacing.md),
+                            const SizedBox(height: Spacing.md),
 
-                  // ── Description ──
-                  _buildDescription(),
+                            // ── Description ──
+                            _buildDescription(),
 
-                  const Spacer(flex: 2),
+                            const Spacer(flex: 4),
 
-                  // ── Primary Button ──
-                  _buildPrimaryButton(),
+                            // ── Primary Button ──
+                            _buildPrimaryButton(),
 
-                  const SizedBox(height: Spacing.md),
+                            const SizedBox(height: Spacing.md),
 
-                  // ── Secondary Button ──
-                  _buildSecondaryButton(),
+                            // ── Secondary Button ──
+                            _buildSecondaryButton(),
 
-                  const SizedBox(height: Spacing.xxl),
+                            const Spacer(flex: 2),
 
-                  // ── Privacy Notice ──
-                  _buildPrivacyNotice(),
+                            // ── Privacy Notice ──
+                            _buildPrivacyNotice(),
 
-                  const SizedBox(height: Spacing.lg),
-                ],
+                            const SizedBox(height: Spacing.lg),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -164,8 +178,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
-  // ── Neural Ring ──
-  Widget _buildNeuralRing() {
+  // ── Neural Head Image ──
+  Widget _buildNeuralHead() {
     return AnimatedBuilder(
       animation: Listenable.merge([_floatController, _breathController]),
       builder: (context, _) {
@@ -175,7 +189,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             scale: _breathAnim.value,
             child: Image.asset(
               'assets/splash/neural_ring.png',
-              height: (MediaQuery.of(context).size.height * 0.22).clamp(140, 200),
+              height: (MediaQuery.of(context).size.height * 0.32).clamp(240, 320),
               fit: BoxFit.contain,
             ),
           ),
@@ -188,15 +202,21 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   Widget _buildGradientTitle() {
     return ShaderMask(
       shaderCallback: (bounds) => const LinearGradient(
-        colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
+        colors: [
+          Color(0xFFB161FF),
+          Color(0xFF3B82F6),
+          Color(0xFF00E5FF),
+        ],
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
       ).createShader(bounds),
-      child: const Text(
+      child: Text(
         'EternalMind AI',
-        style: TextStyle(
+        style: GoogleFonts.inter(
           color: Colors.white,
-          fontSize: 32,
+          fontSize: 36,
           fontWeight: FontWeight.w800,
-          letterSpacing: -0.02,
+          letterSpacing: -0.5,
         ),
         textAlign: TextAlign.center,
       ),
@@ -209,10 +229,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       padding: const EdgeInsets.symmetric(horizontal: Spacing.xxxl),
       child: Text(
         'LOCAL LEGACY & CONSCIOUSNESS PRESERVATION',
-        style: TextStyle(
-          color: AppColors.textTertiary,
+        style: GoogleFonts.inter(
+          color: const Color(0xFF64748B),
           fontSize: 10,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
           letterSpacing: 2.5,
         ),
         textAlign: TextAlign.center,
@@ -226,34 +246,25 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          width: 40,
-          height: 1.5,
+          width: 36,
+          height: 3,
           decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(1.5),
             gradient: const LinearGradient(
-              colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
+              colors: [
+                Color(0xFFB161FF),
+                Color(0xFF00E5FF),
+              ],
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: Container(
-            width: 5,
-            height: 5,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
-              ),
-            ),
-          ),
-        ),
+        const SizedBox(width: 8),
         Container(
-          width: 40,
-          height: 1.5,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
-            ),
+          width: 4,
+          height: 4,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: Color(0xFF00E5FF),
           ),
         ),
       ],
@@ -267,34 +278,51 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       child: RichText(
         textAlign: TextAlign.center,
         text: TextSpan(
-          style: const TextStyle(
-            fontSize: 22,
+          style: GoogleFonts.inter(
+            fontSize: 32,
             fontWeight: FontWeight.w700,
             color: Colors.white,
-            height: 1.4,
+            height: 1.3,
           ),
           children: [
             const TextSpan(text: 'Preserve '),
-            _gradientText('Today'),
-            const TextSpan(text: '.\nInspire '),
-            _gradientText('Eternity'),
-            const TextSpan(text: '.'),
+            WidgetSpan(
+              alignment: PlaceholderAlignment.baseline,
+              baseline: TextBaseline.alphabetic,
+              child: ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [Color(0xFF00E5FF), Color(0xFF00B0FF)],
+                ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
+                child: Text(
+                  'Today.',
+                  style: GoogleFonts.inter(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            const TextSpan(text: '\nInspire '),
+            WidgetSpan(
+              alignment: PlaceholderAlignment.baseline,
+              baseline: TextBaseline.alphabetic,
+              child: ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [Color(0xFFB161FF), Color(0xFF8B5CF6)],
+                ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
+                child: Text(
+                  'Eternity.',
+                  style: GoogleFonts.inter(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  TextSpan _gradientText(String word) {
-    return TextSpan(
-      text: word,
-      style: TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.w700,
-        foreground: Paint()
-          ..shader = const LinearGradient(
-            colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
-          ).createShader(const Rect.fromLTWH(0, 0, 100, 30)),
       ),
     );
   }
@@ -305,10 +333,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       padding: const EdgeInsets.symmetric(horizontal: Spacing.xxxl),
       child: Text(
         'Build your Digital Human. Preserve your memories, stories, knowledge, and voice so future generations can learn, connect and be inspired.',
-        style: TextStyle(
-          color: AppColors.textSecondary,
+        style: GoogleFonts.inter(
+          color: const Color(0xFF94A3B8),
           fontSize: 13,
           height: 1.6,
+          fontWeight: FontWeight.w400,
         ),
         textAlign: TextAlign.center,
       ),
@@ -321,10 +350,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
       child: SizedBox(
         width: double.infinity,
-        height: 60,
+        height: 56,
         child: _GradientButton(
           gradient: const LinearGradient(
-            colors: [Color(0xFF7C3AED), Color(0xFF3B82F6), Color(0xFF06B6D4)],
+            colors: [
+              Color(0xFF8B5CF6),
+              Color(0xFF3B82F6),
+              Color(0xFF00E5FF),
+            ],
           ),
           label: 'Create Your Digital Human',
           icon: Icons.auto_awesome_rounded,
@@ -340,7 +373,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
       child: SizedBox(
         width: double.infinity,
-        height: 60,
+        height: 56,
         child: _OutlineGradientButton(
           label: 'Import Existing Replica',
           icon: Icons.cloud_upload_outlined,
@@ -355,18 +388,18 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          Icons.shield_rounded,
-          color: const Color(0xFF7C3AED).withAlpha(128),
+        const Icon(
+          Icons.shield_outlined,
+          color: Color(0xFF8B5CF6),
           size: 14,
         ),
         const SizedBox(width: 6),
         Text(
           'Your data is private. Stored locally. Encrypted. Secure.',
-          style: TextStyle(
-            color: AppColors.textTertiary.withAlpha(150),
+          style: GoogleFonts.inter(
+            color: const Color(0xFF64748B),
             fontSize: 11,
-            letterSpacing: 0.3,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
@@ -378,7 +411,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 // Gradient Button (full-width, tall, rounded)
 // ────────────────────────────────────────────────────────────
 
-/// A premium gradient action button with neon glow.
 class _GradientButton extends StatefulWidget {
   const _GradientButton({
     required this.gradient,
@@ -444,12 +476,13 @@ class _GradientButtonState extends State<_GradientButton>
             child: Container(
               decoration: BoxDecoration(
                 gradient: widget.gradient as LinearGradient?,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF7C3AED).withAlpha(77),
-                    blurRadius: 20,
-                    spreadRadius: 2,
+                    color: const Color(0xFF8B5CF6).withAlpha(50),
+                    blurRadius: 16,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
@@ -458,12 +491,12 @@ class _GradientButtonState extends State<_GradientButton>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (widget.icon != null) ...[
-                      Icon(widget.icon, color: Colors.white, size: 22),
+                      Icon(widget.icon, color: Colors.white, size: 20),
                       const SizedBox(width: 8),
                     ],
                     Text(
                       widget.label,
-                      style: const TextStyle(
+                      style: GoogleFonts.inter(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -485,7 +518,6 @@ class _GradientButtonState extends State<_GradientButton>
 // Outline Gradient Button (transparent, gradient border)
 // ────────────────────────────────────────────────────────────
 
-/// A transparent button with a purple→cyan gradient border.
 class _OutlineGradientButton extends StatefulWidget {
   const _OutlineGradientButton({
     required this.label,
@@ -547,11 +579,11 @@ class _OutlineGradientButtonState extends State<_OutlineGradientButton>
           return Transform.scale(
             scale: _scaleAnim.value,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(16),
               child: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
+                    colors: [Color(0xFF8B5CF6), Color(0xFF00E5FF)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -559,8 +591,8 @@ class _OutlineGradientButtonState extends State<_OutlineGradientButton>
                 padding: const EdgeInsets.all(1.5),
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    color: const Color(0xFF060913),
+                    borderRadius: BorderRadius.circular(16),
+                    color: const Color(0xFF03050A),
                   ),
                   child: Center(
                     child: Row(
@@ -569,14 +601,14 @@ class _OutlineGradientButtonState extends State<_OutlineGradientButton>
                         if (widget.icon != null) ...[
                           Icon(
                             widget.icon,
-                            color: Colors.white70,
-                            size: 22,
+                            color: Colors.white,
+                            size: 20,
                           ),
                           const SizedBox(width: 8),
                         ],
                         Text(
                           widget.label,
-                          style: const TextStyle(
+                          style: GoogleFonts.inter(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
