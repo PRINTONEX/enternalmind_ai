@@ -42,4 +42,7 @@ abstract final class RouteNames {
 
   /// Settings route.
   static const String settings = '/settings';
+
+  /// Debug database viewer route.
+  static const String debug = '/debug';
 }

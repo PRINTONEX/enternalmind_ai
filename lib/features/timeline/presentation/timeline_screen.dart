@@ -87,13 +87,7 @@ class _TimelineScreenState extends ConsumerState<TimelineScreen> {
             ),
           ),
 
-          // 5. Bottom Navigation
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: _buildBottomNav(context),
-          ),
+          // Bottom navigation handled by parent Dashboard shell
         ],
       ),
     );
@@ -540,97 +534,6 @@ class _TimelineScreenState extends ConsumerState<TimelineScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNav(BuildContext context) {
-    final items = [
-      ('Dashboard', Icons.grid_view_rounded, 0),
-      ('Chat', Icons.chat_bubble_outline_rounded, 1),
-      ('', Icons.add_rounded, -1), // center FAB
-      ('Memories', Icons.memory_outlined, 2),
-      ('Profile', Icons.person_outline_rounded, 3),
-    ];
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(
-        Spacing.lg,
-        0,
-        Spacing.lg,
-        Spacing.sm,
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: Spacing.sm,
-        vertical: 6,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xFF090D1A).withAlpha(220),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: const Color(0xFF1E293B),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(items.length, (index) {
-          final item = items[index];
-          if (item.$3 == -1) {
-            // Center FAB
-            return Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF7C3AED).withAlpha(77),
-                    blurRadius: 12,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.add_rounded,
-                color: Colors.white,
-                size: 24,
-              ),
-            );
-          }
-
-          final isActive = _currentNavIndex == item.$3;
-          return GestureDetector(
-            onTap: () {
-              // Switch tabs or return
-              context.go(RouteNames.dashboard);
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  item.$2,
-                  color: isActive
-                      ? const Color(0xFF7C3AED)
-                      : const Color(0xFF64748B),
-                  size: 20,
-                ),
-                Text(
-                  item.$1,
-                  style: TextStyle(
-                    color: isActive
-                        ? const Color(0xFF7C3AED)
-                        : const Color(0xFF64748B),
-                    fontSize: 9,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
       ),
     );
   }

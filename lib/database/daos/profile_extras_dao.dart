@@ -172,6 +172,11 @@ class FavoriteWordsDao {
   Future<int> insert(FavoriteWordsTableCompanion entry) =>
       _db.into(_db.favoriteWordsTable).insert(entry);
 
+  Future<List<FavoriteWordsTableData>> getForHuman(int humanId) =>
+      (_db.select(_db.favoriteWordsTable)
+            ..where((t) => t.humanId.equals(humanId)))
+          .get();
+
   Future<void> deleteAllForHuman(int humanId) =>
       (_db.delete(_db.favoriteWordsTable)
             ..where((t) => t.humanId.equals(humanId)))

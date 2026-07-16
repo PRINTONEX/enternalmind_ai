@@ -24,7 +24,9 @@ import '../../features/timeline/presentation/timeline_screen.dart';
 import '../../features/family_tree/presentation/family_tree_screen.dart';
 import '../../features/memories/presentation/memories_screen.dart';
 import '../../features/voice_space/presentation/voice_space_screen.dart';
+import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
+import '../../features/debug/presentation/debug_screen.dart';
 import 'route_names.dart';
 
 /// Creates and returns the GoRouter configuration.
@@ -68,17 +70,7 @@ GoRouter createRouter() {
       GoRoute(
         path: RouteNames.profileDetail,
         name: 'profileDetail',
-        builder: (context, state) {
-          final id = state.pathParameters['id'] ?? '';
-          return Scaffold(
-            body: Center(
-              child: Text(
-                'Profile Detail: $id',
-                style: const TextStyle(color: Colors.white, fontSize: 20),
-              ),
-            ),
-          );
-        },
+        builder: (context, state) => const ProfileScreen(),
       ),
 
       GoRoute(
@@ -115,6 +107,12 @@ GoRouter createRouter() {
         path: RouteNames.settings,
         name: 'settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+
+      GoRoute(
+        path: RouteNames.debug,
+        name: 'debug',
+        builder: (context, state) => const DebugScreen(),
       ),
     ],
 

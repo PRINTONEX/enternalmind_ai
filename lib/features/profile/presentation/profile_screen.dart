@@ -6,11 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/ui_constants.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../../database/app_database.dart';
 import '../../dashboard/providers/dashboard_providers.dart';
 import '../../wizard/models/wizard_models.dart';
 import '../../wizard/providers/wizard_providers.dart';
+import '../providers/profile_providers.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -125,9 +126,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final profileAsync = ref.watch(dashProfileProvider);
     final profile = profileAsync.valueOrNull;
 
-    if (!_controllersInitialized) {
-      _initControllers(profile);
-    }
+    // ── Watch all section data providers ──
+    final lifeStoriesAsync = ref.watch(profileLifeStoriesProvider);
+    final journalsAsync = ref.watch(profileDailyJournalsProvider);
+    final familyAsync = ref.watch(profileFamilyMembersProvider);
+    final lifePlacesAsync = ref.watch(profileLifePlacesProvider);
+    final memoriesAsync = ref.watch(profileMemoriesProvider);
+    final albumsAsync = ref.watch(profilePhotoAlbumsProvider);
+    final voiceSettingsAsync = ref.watch(profileVoiceSettingsProvider);
+    final documentsAsync = ref.watch(profileDocumentsProvider);
+    final legacyAsync = ref.watch(profileLegacyMessagesProvider);
+    final careerAsync = ref.watch(profileCareerProvider);
+    final educationAsync = ref.watch(profileEducationProvider);
+    final skillsAsync = ref.watch(profileSkillsProvider);
+    final interestsAsync = ref.watch(profileInterestsProvider);
+    final goalsAsync = ref.watch(profileGoalsProvider);
+    final traitsAsync = ref.watch(profilePersonalityTraitsProvider);
+    final stylesAsync = ref.watch(profileConversationStylesProvider);
+    final favoritesAsync = ref.watch(profileFavoritesProvider);
+    final languagesAsync = ref.watch(profileLanguagesProvider);
+    final timelineAsync = ref.watch(profileTimelineProvider);
+    final dailyHabitsAsync = ref.watch(profileDailyHabitsProvider);
+    final valuesBeliefsAsync = ref.watch(profileValuesBeliefsProvider);
+    final decisionProfilesAsync = ref.watch(profileDecisionProfilesProvider);
+    final favoriteWordsAsync = ref.watch(profileFavoriteWordsProvider);
+
+    // Sync controllers when profile data arrives from DB
+    _syncControllers(profile);
 
     final name = profile?.fullName.isNotEmpty == true
         ? profile!.fullName
@@ -315,86 +340,140 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       _buildSpacing(),
 
-                      // Section 14: Skills
-                      _buildSectionWrapper(
-                        index: 13,
-                        icon: Icons.psychology_outlined,
-                        title: 'Skills & Expertise',
-                        description: 'Define your technical skills and capabilities.',
-                        color: const Color(0xFFF59E0B),
-                        content: _buildSkillsContent(),
-                      ),
-                      _buildSpacing(),
-
-                      // Section 15: Interests
+                      // Section 15: Daily Habits
                       _buildSectionWrapper(
                         index: 14,
-                        icon: Icons.favorite_border_rounded,
-                        title: 'Interests',
-                        description: 'Edit topics, hobbies, and topics of study.',
-                        color: const Color(0xFFD946EF),
-                        content: _buildInterestsContent(),
+                        icon: Icons.wb_sunny_outlined,
+                        title: 'Daily Habits',
+                        description: dailyHabitsAsync.valueOrNull != null
+                            ? 'Daily routine configured.'
+                            : 'Record your daily rhythms.',
+                        color: const Color(0xFFF59E0B),
+                        content: _buildDailyHabitsContent(dailyHabitsAsync.valueOrNull),
                       ),
                       _buildSpacing(),
 
-                      // Section 16: Goals
+                      // Section 16: Skills
                       _buildSectionWrapper(
                         index: 15,
-                        icon: Icons.flag_outlined,
-                        title: 'Goals & Aspirations',
-                        description: 'Specify career targets and future dream projects.',
-                        color: const Color(0xFF00E5FF),
-                        content: _buildGoalsContent(),
+                        icon: Icons.psychology_outlined,
+                        title: 'Skills & Expertise',
+                        description: '${skillsAsync.valueOrNull?.length ?? 0} skills defined.',
+                        color: const Color(0xFFF59E0B),
+                        content: _buildSkillsContent(skillsAsync.valueOrNull ?? []),
                       ),
                       _buildSpacing(),
 
-                      // Section 17: Personality
+                      // Section 17: Interests
                       _buildSectionWrapper(
                         index: 16,
-                        icon: Icons.track_changes_outlined,
-                        title: 'Personality Profile',
-                        description: 'Configure your core values and conversation traits.',
-                        color: const Color(0xFF7C3AED),
-                        content: _buildPersonalityContent(),
+                        icon: Icons.favorite_border_rounded,
+                        title: 'Interests',
+                        description: '${interestsAsync.valueOrNull?.length ?? 0} interests listed.',
+                        color: const Color(0xFFD946EF),
+                        content: _buildInterestsContent(interestsAsync.valueOrNull ?? []),
                       ),
                       _buildSpacing(),
 
-                      // Section 18: AI Personality
+                      // Section 18: Goals
                       _buildSectionWrapper(
                         index: 17,
-                        icon: Icons.android_outlined,
-                        title: 'AI Companion Personality',
-                        description: 'Tailor tone, greeting style, and speaking modes.',
-                        color: const Color(0xFF10B981),
-                        content: _buildAIPersonalityContent(),
+                        icon: Icons.flag_outlined,
+                        title: 'Goals & Aspirations',
+                        description: '${goalsAsync.valueOrNull?.length ?? 0} goals set.',
+                        color: const Color(0xFF00E5FF),
+                        content: _buildGoalsContent(goalsAsync.valueOrNull ?? []),
                       ),
                       _buildSpacing(),
 
-                      // Section 19: Favorites
+                      // Section 19: Personality
                       _buildSectionWrapper(
                         index: 18,
-                        icon: Icons.star_border_rounded,
-                        title: 'Favorites',
-                        description: 'Your favorite movies, books, music, and food.',
-                        color: const Color(0xFFEC4899),
-                        content: _buildFavoritesContent(),
+                        icon: Icons.track_changes_outlined,
+                        title: 'Personality Profile',
+                        description: traitsAsync.valueOrNull != null
+                            ? 'Traits quantified.'
+                            : 'Configure your core values.',
+                        color: const Color(0xFF7C3AED),
+                        content: _buildPersonalityContent(traitsAsync.valueOrNull),
                       ),
                       _buildSpacing(),
 
-                      // Section 20: Languages
+                      // Section 20: AI Personality
                       _buildSectionWrapper(
                         index: 19,
-                        icon: Icons.translate_rounded,
-                        title: 'Languages',
-                        description: 'Add languages and rate reading/speaking proficiency.',
-                        color: const Color(0xFF3B82F6),
-                        content: _buildLanguagesContent(),
+                        icon: Icons.android_outlined,
+                        title: 'AI Companion Personality',
+                        description: stylesAsync.valueOrNull != null
+                            ? 'Speaking style configured.'
+                            : 'Tailor tone and greeting style.',
+                        color: const Color(0xFF10B981),
+                        content: _buildAIPersonalityContent(stylesAsync.valueOrNull),
                       ),
                       _buildSpacing(),
 
-                      // Section 21: Privacy & Settings
+                      // Section 21: Values & Beliefs
                       _buildSectionWrapper(
                         index: 20,
+                        icon: Icons.auto_awesome_rounded,
+                        title: 'Values & Beliefs',
+                        description: valuesBeliefsAsync.valueOrNull != null
+                            ? 'Core principles defined.'
+                            : 'Define your values and ethics.',
+                        color: const Color(0xFF10B981),
+                        content: _buildValuesBeliefsContent(valuesBeliefsAsync.valueOrNull),
+                      ),
+                      _buildSpacing(),
+
+                      // Section 22: Decision Profile
+                      _buildSectionWrapper(
+                        index: 21,
+                        icon: Icons.psychology_alt_rounded,
+                        title: 'Decision Profile',
+                        description: decisionProfilesAsync.valueOrNull != null
+                            ? 'Decision style configured.'
+                            : 'Analyze your decision patterns.',
+                        color: const Color(0xFF7C3AED),
+                        content: _buildDecisionProfileContent(decisionProfilesAsync.valueOrNull),
+                      ),
+                      _buildSpacing(),
+
+                      // Section 23: Favorites
+                      _buildSectionWrapper(
+                        index: 22,
+                        icon: Icons.star_border_rounded,
+                        title: 'Favorites',
+                        description: '${favoritesAsync.valueOrNull?.length ?? 0} favorites saved.',
+                        color: const Color(0xFFEC4899),
+                        content: _buildFavoritesContent(favoritesAsync.valueOrNull ?? []),
+                      ),
+                      _buildSpacing(),
+
+                      // Section 24: Languages
+                      _buildSectionWrapper(
+                        index: 23,
+                        icon: Icons.translate_rounded,
+                        title: 'Languages',
+                        description: '${languagesAsync.valueOrNull?.length ?? 0} languages added.',
+                        color: const Color(0xFF3B82F6),
+                        content: _buildLanguagesContent(languagesAsync.valueOrNull ?? []),
+                      ),
+                      _buildSpacing(),
+
+                      // Section 25: Favorite Words
+                      _buildSectionWrapper(
+                        index: 24,
+                        icon: Icons.chat_bubble_outline_rounded,
+                        title: 'Favorite Words',
+                        description: '${favoriteWordsAsync.valueOrNull?.length ?? 0} cherished words.',
+                        color: const Color(0xFFD946EF),
+                        content: _buildFavoriteWordsContent(favoriteWordsAsync.valueOrNull ?? []),
+                      ),
+                      _buildSpacing(),
+
+                      // Section 26: Privacy & Settings
+                      _buildSectionWrapper(
+                        index: 25,
                         icon: Icons.lock_outline_rounded,
                         title: 'Privacy & Security',
                         description: 'Configure local encryption, permissions, and backups.',
@@ -864,6 +943,131 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return months[month - 1];
   }
 
+  String _fmtDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return 'Unknown date';
+    try {
+      final dt = DateTime.parse(dateStr);
+      return '${dt.day.toString().padLeft(2, '0')} ${_getMonthName(dt.month)} ${dt.year}';
+    } catch (_) {
+      return dateStr;
+    }
+  }
+
+  String? _moodEmoji(String? mood) {
+    switch (mood?.toLowerCase()) {
+      case 'happy': case 'joyful': return '😊';
+      case 'calm': return '😐';
+      case 'motivated': case 'hopeful': return '🔥';
+      case 'tired': return '💤';
+      case 'pensive': case 'sad': return '😔';
+      case 'grateful': return '🙏';
+      default: return null;
+    }
+  }
+
+  String _storyTitle(String? key) {
+    if (key == null) return 'Story';
+    return key.split('_').map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}').join(' ');
+  }
+
+  Color _relColor(String? rel) {
+    switch (rel?.toLowerCase()) {
+      case 'father': case 'mother': case 'parent': return const Color(0xFF3B82F6);
+      case 'brother': case 'sister': case 'sibling': return const Color(0xFF10B981);
+      case 'wife': case 'husband': case 'spouse': return const Color(0xFFEC4899);
+      case 'children': case 'son': case 'daughter': return const Color(0xFFF59E0B);
+      default: return const Color(0xFF7C3AED);
+    }
+  }
+
+  IconData _memIcon(String? category) {
+    switch (category?.toLowerCase()) {
+      case 'career': return Icons.work_outlined;
+      case 'family': return Icons.family_restroom_outlined;
+      case 'business': return Icons.business_center_outlined;
+      case 'marriage': return Icons.favorite_rounded;
+      default: return Icons.image_outlined;
+    }
+  }
+
+  Widget _emptyPlaceholder(String message, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          Icon(icon, color: const Color(0xFF475569), size: 32),
+          const SizedBox(height: 8),
+          Text(message, textAlign: TextAlign.center,
+            style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 12, fontStyle: FontStyle.italic)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTraitRow(String label, int? value) {
+    final clamped = (value ?? 50).clamp(0, 100) / 100.0;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          SizedBox(width: 90,
+            child: Text(label,
+              style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w500)),
+          ),
+          Expanded(
+            child: LinearProgressIndicator(
+              value: clamped,
+              backgroundColor: const Color(0xFF1E293B),
+              color: const Color(0xFF7C3AED),
+              minHeight: 6,
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+          SizedBox(width: 30,
+            child: Text('$value', textAlign: TextAlign.right,
+              style: GoogleFonts.inter(color: const Color(0xFF00E5FF), fontSize: 11, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStyleRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          SizedBox(width: 100,
+            child: Text(label,
+              style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w500)),
+          ),
+          Expanded(
+            child: Text(value,
+              style: GoogleFonts.inter(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVoiceRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          SizedBox(width: 100,
+            child: Text(label,
+              style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w500)),
+          ),
+          Expanded(
+            child: Text(value,
+              style: GoogleFonts.inter(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ── 2. LIFE STORIES CONTENT ──
   Widget _buildLifeStoriesContent() {
     final chapters = [
@@ -1316,39 +1520,41 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   // ── 14. SKILLS CONTENT ──
-  Widget _buildSkillsContent() {
-    final skills = ['Flutter', 'Dart', 'LLMs', 'API Design', 'Python', 'RAG Systems'];
+  Widget _buildSkillsContent(List<SkillsTableData> skills) {
+    if (skills.isEmpty) {
+      return _emptyPlaceholder('No skills added yet.', Icons.psychology_outlined);
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: skills.map((skill) {
+          children: skills.map((s) {
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
                   colors: [Color(0xFF7C3AED), Color(0xFF00E5FF)],
                 ),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                skill,
+                s.name,
                 style: GoogleFonts.inter(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold),
               ),
             );
           }).toList(),
         ),
-        const SizedBox(height: 14),
-        _buildField(label: 'Add Skill', hint: 'Enter skill (e.g. React)', icon: Icons.add_circle_outline_rounded),
       ],
     );
   }
 
-  // ── 15. INTERESTS CONTENT ──
-  Widget _buildInterestsContent() {
-    final interests = ['Coding', 'Space Exploration', 'Psychology', 'Gaming', 'Writing', 'History'];
+  // ── 17. INTERESTS CONTENT ──
+  Widget _buildInterestsContent(List<InterestsTableData> interests) {
+    if (interests.isEmpty) {
+      return _emptyPlaceholder('No interests listed.', Icons.favorite_border_rounded);
+    }
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -1361,7 +1567,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             border: Border.all(color: const Color(0xFF1E293B)),
           ),
           child: Text(
-            i,
+            i.name,
             style: GoogleFonts.inter(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
           ),
         );
@@ -1369,30 +1575,79 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  // ── 16. GOALS CONTENT ──
-  Widget _buildGoalsContent() {
+  // ── 18. GOALS CONTENT ──
+  Widget _buildGoalsContent(List<GoalsTableData> goals) {
+    if (goals.isEmpty) {
+      return _emptyPlaceholder('No goals set yet.', Icons.flag_outlined);
+    }
     return Column(
-      children: [
-        _buildField(label: 'Life Goals', hint: 'Create a permanent digital clone...', icon: Icons.stars_rounded, isMultiline: true),
-        const SizedBox(height: 14),
-        _buildField(label: 'Career Goals', hint: 'Open source a framework...', icon: Icons.flag_outlined, isMultiline: true),
-      ],
+      children: goals.map((g) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF090D1A),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF1E293B)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00E5FF).withAlpha(20),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  g.type ?? 'Goal',
+                  style: GoogleFonts.inter(color: const Color(0xFF00E5FF), fontSize: 9, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                g.description ?? '',
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 11, height: 1.4),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
-  // ── 17. PERSONALITY CONTENT ──
-  Widget _buildPersonalityContent() {
+  // ── 19. PERSONALITY CONTENT ──
+  Widget _buildPersonalityContent(PersonalityTraitsTableData? traits) {
+    if (traits == null) {
+      return _emptyPlaceholder('No personality traits recorded.', Icons.track_changes_outlined);
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Personality Sliders',
+          'Personality Traits',
           style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
-        _buildPersonalitySlider('Introverted / Extroverted', 0.35),
-        _buildPersonalitySlider('Intuitive / Analytical', 0.82),
-        _buildPersonalitySlider('Spontaneous / Planned', 0.45),
+        _buildTraitRow('Kindness', traits.kindness),
+        _buildTraitRow('Patience', traits.patience),
+        _buildTraitRow('Leadership', traits.leadership),
+        _buildTraitRow('Confidence', traits.confidence),
+        _buildTraitRow('Humor', traits.humor),
+        _buildTraitRow('Creativity', traits.creativity),
+        _buildTraitRow('Optimism', traits.optimism),
+        _buildTraitRow('Discipline', traits.discipline),
+        _buildTraitRow('Curiosity', traits.curiosity),
+        _buildTraitRow('Emotional', traits.emotional),
+        if (traits.speakingStyle != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Speaking Style: ${traits.speakingStyle}',
+            style: GoogleFonts.inter(color: const Color(0xFF7C3AED), fontSize: 12, fontWeight: FontWeight.w600),
+          ),
+        ],
       ],
     );
   }
@@ -1425,43 +1680,127 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   // ── 18. AI PERSONALITY CONTENT ──
-  Widget _buildAIPersonalityContent() {
+  Widget _buildAIPersonalityContent(ConversationStylesTableData? style) {
+    if (style == null) {
+      return _emptyPlaceholder('No conversation style configured.', Icons.android_outlined);
+    }
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildField(label: 'Speaking Tone', hint: 'Empathetic and thoughtful', icon: Icons.record_voice_over_outlined),
-        const SizedBox(height: 14),
-        _buildField(label: 'Greeting Phrase', hint: 'Hello Aftab, how can I assist your twin today?', icon: Icons.waving_hand_outlined),
-      ],
-    );
-  }
-
-  // ── 19. FAVORITES CONTENT ──
-  Widget _buildFavoritesContent() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(child: _buildField(label: 'Favorite Book', hint: 'The Alchemist', icon: Icons.book_outlined)),
-            const SizedBox(width: 12),
-            Expanded(child: _buildField(label: 'Favorite Food', hint: 'Biryani', icon: Icons.restaurant_rounded)),
-          ],
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF090D1A),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF1E293B)),
+          ),
+          child: Column(
+            children: [
+              _buildStyleRow('Tone', style.tone ?? '—'),
+              _buildStyleRow('Story Teller', style.storyTeller == 1 ? 'Yes' : 'No'),
+              _buildStyleRow('Teacher Mode', style.teacherMode == 1 ? 'Yes' : 'No'),
+              _buildStyleRow('Motivational', style.motivational == 1 ? 'Yes' : 'No'),
+              _buildStyleRow('Reply Length', style.replyLength ?? '—'),
+              _buildStyleRow('Emoji Usage', style.emojiUsage ?? '—'),
+              _buildStyleRow('Local Language', style.localLanguage ?? '—'),
+            ],
+          ),
         ),
-        const SizedBox(height: 14),
-        _buildField(label: 'Favorite Movie', hint: 'Interstellar', icon: Icons.movie_outlined),
+        if (style.favoriteGreetings != null && style.favoriteGreetings!.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(
+            'Favorite Greetings',
+            style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            style.favoriteGreetings!,
+            style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 11),
+          ),
+        ],
       ],
     );
   }
 
-  // ── 20. LANGUAGES CONTENT ──
-  Widget _buildLanguagesContent() {
+  // ── 23. FAVORITES CONTENT ──
+  Widget _buildFavoritesContent(List<FavoritesTableData> favorites) {
+    if (favorites.isEmpty) {
+      return _emptyPlaceholder('No favorites saved yet.', Icons.star_border_rounded);
+    }
+    final grouped = <String, List<FavoritesTableData>>{};
+    for (final f in favorites) {
+      grouped.putIfAbsent(f.type, () => []).add(f);
+    }
     return Column(
-      children: [
-        _buildLanguageProficiencyRow('English', 0.95),
-        const SizedBox(height: 12),
-        _buildLanguageProficiencyRow('Manipuri', 1.0),
-        const SizedBox(height: 12),
-        _buildLanguageProficiencyRow('Hindi', 0.85),
-      ],
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: grouped.entries.map((e) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${e.key}',
+                style: GoogleFonts.inter(color: const Color(0xFFEC4899), fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              ...e.value.map((f) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  '• ${f.value}',
+                  style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 11, height: 1.3),
+                ),
+              )),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // ── 24. LANGUAGES CONTENT ──
+  Widget _buildLanguagesContent(List<LanguagesTableData> languages) {
+    if (languages.isEmpty) {
+      return _emptyPlaceholder('No languages added.', Icons.translate_rounded);
+    }
+    return Column(
+      children: languages.map((l) {
+        final overall = ((l.readingRating ?? 0) + (l.writingRating ?? 0) + (l.speakingRating ?? 0)) / 15.0;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF090D1A),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF1E293B)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(l.language, style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                  Text('${(overall * 100).round()}%', style: GoogleFonts.inter(color: const Color(0xFF3B82F6), fontSize: 11, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              LinearProgressIndicator(
+                value: overall.clamp(0.0, 1.0),
+                backgroundColor: const Color(0xFF1E293B),
+                color: const Color(0xFF3B82F6),
+                minHeight: 6,
+                borderRadius: BorderRadius.circular(3),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Reading: ${l.readingRating ?? 0}/5  Writing: ${l.writingRating ?? 0}/5  Speaking: ${l.speakingRating ?? 0}/5',
+                style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 9, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -1493,7 +1832,526 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  // ── 21. PRIVACY CONTENT ──
+  // ── 7. TIMELINE CONTENT ──
+  Widget _buildTimelineContent(List<TimelineTableData> events) {
+    if (events.isEmpty) {
+      return _emptyPlaceholder('No timeline events recorded.', Icons.timeline_rounded);
+    }
+
+    return Column(
+      children: [
+        Text(
+          '${events.length} Life Milestones',
+          style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        ...events.map((e) {
+          return IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Timeline line + dot
+                SizedBox(
+                  width: 30,
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFF8B5CF6),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF8B5CF6).withAlpha(80),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Container(
+                          width: 1,
+                          color: const Color(0xFF8B5CF6).withAlpha(40),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Event card
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF090D1A),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFF1E293B)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            if (e.year != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF8B5CF6).withAlpha(20),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  '${e.year}',
+                                  style: GoogleFonts.inter(color: const Color(0xFF8B5CF6), fontSize: 10, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            if (e.emotion != null && e.emotion!.isNotEmpty) ...[
+                              const SizedBox(width: 6),
+                              Text(_emojiForEmotion(e.emotion!), style: const TextStyle(fontSize: 14)),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          e.title ?? 'Event',
+                          style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                        ),
+                        if (e.location != null && e.location!.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.location_on_outlined, color: const Color(0xFF64748B), size: 12),
+                              const SizedBox(width: 3),
+                              Text(
+                                e.location!,
+                                style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 10),
+                              ),
+                            ],
+                          ),
+                        ],
+                        if (e.description != null && e.description!.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            e.description!,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 11, height: 1.4),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  String _emojiForEmotion(String emotion) {
+    switch (emotion.toLowerCase()) {
+      case 'happy': case 'joy': case 'excited': return '😊';
+      case 'sad': case 'sorrow': return '😢';
+      case 'challenging': case 'difficult': case 'hard': return '😤';
+      case 'neutral': case 'calm': return '😐';
+      case 'proud': return '🥹';
+      case 'grateful': return '🙏';
+      case 'hopeful': return '🌟';
+      case 'stressful': case 'anxious': return '😰';
+      default: return '📌';
+    }
+  }
+
+  // ── 15. DAILY HABITS CONTENT ──
+  Widget _buildDailyHabitsContent(DailyHabitsTableData? h) {
+    if (h == null) {
+      return _emptyPlaceholder('No daily habits recorded.', Icons.wb_sunny_outlined);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Schedule card
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF090D1A),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF1E293B)),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _habitPill(Icons.wb_sunny_outlined, 'Wake', h.wakeTime ?? '—', const Color(0xFFF59E0B)),
+                  _habitPill(Icons.nightlight_round, 'Sleep', h.sleepTime ?? '—', const Color(0xFF3B82F6)),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Morning Habits
+        if (h.prayer != null || h.teaCoffee != null || h.exercise != null) ...[
+          _habitSection('🌄 Morning', [
+            if (h.prayer != null) _habitItem('Prayer', h.prayer!),
+            if (h.teaCoffee != null) _habitItem('Tea/Coffee', h.teaCoffee!),
+            if (h.exercise != null) _habitItem('Exercise', h.exercise!),
+          ]),
+          const SizedBox(height: 8),
+        ],
+
+        // Day Habits
+        if (h.reading != null || h.coding != null) ...[
+          _habitSection('☀️ Day', [
+            if (h.reading != null) _habitItem('Reading', h.reading!),
+            if (h.coding != null) _habitItem('Coding', h.coding!),
+          ]),
+          const SizedBox(height: 8),
+        ],
+
+        // Evening / Other
+        if (h.meditationWalking != null || h.customHabits != null || h.smokingAlcohol != null) ...[
+          _habitSection('🌆 Evening & Other', [
+            if (h.meditationWalking != null) _habitItem('Meditation/Walking', h.meditationWalking!),
+            if (h.smokingAlcohol != null) _habitItem('Smoking/Alcohol', h.smokingAlcohol!),
+            if (h.customHabits != null) _habitItem('Custom Habits', h.customHabits!),
+          ]),
+        ],
+      ],
+    );
+  }
+
+  Widget _habitPill(IconData icon, String label, String value, Color color) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 16),
+        const SizedBox(width: 6),
+        Text(
+          '$label: ',
+          style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w500),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.inter(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+
+  Widget _habitSection(String title, List<Widget> items) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF090D1A),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF1E293B)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          ...items,
+        ],
+      ),
+    );
+  }
+
+  Widget _habitItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Icon(Icons.check_circle_outline, color: const Color(0xFF10B981), size: 14),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.w500),
+          ),
+          const Spacer(),
+          Text(
+            value,
+            style: GoogleFonts.inter(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 21. VALUES & BELIEFS CONTENT ──
+  Widget _buildValuesBeliefsContent(ValuesBeliefsTableData? vb) {
+    if (vb == null) {
+      return _emptyPlaceholder('No values & beliefs recorded.', Icons.auto_awesome_rounded);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Religion
+        if (vb.religion != null && vb.religion!.isNotEmpty)
+          _buildInfoCard(
+            '🕌 Religion',
+            vb.religion!,
+            const Color(0xFF10B981),
+          ),
+        const SizedBox(height: 10),
+
+        // Core Values as chips
+        if (vb.coreValues != null && vb.coreValues!.isNotEmpty) ...[
+          Text(
+            '💎 Core Values',
+            style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: vb.coreValues!.split(',').map((v) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF10B981), Color(0xFF059669)],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  v.trim(),
+                  style: GoogleFonts.inter(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 12),
+        ],
+
+        // Life Principles
+        if (vb.lifePrinciples != null && vb.lifePrinciples!.isNotEmpty)
+          _buildInfoCard('📜 Life Principles', vb.lifePrinciples!, const Color(0xFF7C3AED)),
+        const SizedBox(height: 10),
+
+        // Ethics
+        if (vb.ethics != null && vb.ethics!.isNotEmpty)
+          _buildInfoCard('⚖️ Ethics', vb.ethics!, const Color(0xFFEC4899)),
+        const SizedBox(height: 10),
+
+        // Always Do / Never Do side by side
+        if ((vb.thingsAlwaysDo != null && vb.thingsAlwaysDo!.isNotEmpty) ||
+            (vb.thingsNeverDo != null && vb.thingsNeverDo!.isNotEmpty)) ...[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (vb.thingsAlwaysDo != null && vb.thingsAlwaysDo!.isNotEmpty)
+                Expanded(
+                  child: _buildInfoCard('✅ Always Do', vb.thingsAlwaysDo!, const Color(0xFF10B981)),
+                ),
+              if (vb.thingsAlwaysDo != null && vb.thingsAlwaysDo!.isNotEmpty &&
+                  vb.thingsNeverDo != null && vb.thingsNeverDo!.isNotEmpty)
+                const SizedBox(width: 8),
+              if (vb.thingsNeverDo != null && vb.thingsNeverDo!.isNotEmpty)
+                Expanded(
+                  child: _buildInfoCard('❌ Never Do', vb.thingsNeverDo!, const Color(0xFFEF4444)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+        ],
+
+        // Political Preference
+        if (vb.politicalPreference != null && vb.politicalPreference!.isNotEmpty)
+          _buildInfoCard('🗳️ Political', vb.politicalPreference!, const Color(0xFF3B82F6)),
+      ],
+    );
+  }
+
+  Widget _buildInfoCard(String title, String content, Color color) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF090D1A),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF1E293B)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.inter(color: color, fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            content,
+            style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 11, height: 1.4),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 22. DECISION PROFILE CONTENT ──
+  Widget _buildDecisionProfileContent(DecisionProfilesTableData? dp) {
+    if (dp == null) {
+      return _emptyPlaceholder('No decision profile recorded.', Icons.psychology_alt_rounded);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Decision Dimensions',
+          style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        _buildDecisionBar('Logic', dp.logicLevel, const Color(0xFF3B82F6)),
+        _buildDecisionBar('Emotion', dp.emotionLevel, const Color(0xFFEC4899)),
+        _buildDecisionBar('Faith', dp.faithLevel, const Color(0xFF10B981)),
+        _buildDecisionBar('Research', dp.researchLevel, const Color(0xFFF59E0B)),
+        _buildDecisionBar('Experience', dp.experienceLevel, const Color(0xFF8B5CF6)),
+        _buildDecisionBar('Friends Influence', dp.friendsInfluence, const Color(0xFF06B6D4)),
+        _buildDecisionBar('Family Influence', dp.familyInfluence, const Color(0xFFD946EF)),
+        const SizedBox(height: 12),
+
+        // Style cards
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF090D1A),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF1E293B)),
+          ),
+          child: Column(
+            children: [
+              _buildDecisionStyle('Risk Level', dp.riskLevel),
+              _buildDecisionStyle('Financial Style', dp.financialStyle),
+              _buildDecisionStyle('Leadership', dp.leadershipStyle),
+              _buildDecisionStyle('Conflict Handling', dp.conflictHandling),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDecisionBar(String label, int? value, Color color) {
+    final clamped = ((value ?? 5).clamp(0, 10)) / 10.0;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w500),
+              ),
+              Text(
+                '$value/10',
+                style: GoogleFonts.inter(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          LinearProgressIndicator(
+            value: clamped,
+            backgroundColor: const Color(0xFF1E293B),
+            color: color,
+            minHeight: 6,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDecisionStyle(String label, String? value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w500),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value ?? '—',
+              style: GoogleFonts.inter(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 25. FAVORITE WORDS CONTENT ──
+  Widget _buildFavoriteWordsContent(List<FavoriteWordsTableData> words) {
+    if (words.isEmpty) {
+      return _emptyPlaceholder('No favorite words saved.', Icons.chat_bubble_outline_rounded);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${words.length} Cherished Words',
+          style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: words.map((w) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF090D1A),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: const Color(0xFFD946EF).withAlpha(80),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFD946EF).withAlpha(15),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.auto_awesome, color: const Color(0xFFD946EF), size: 12),
+                  const SizedBox(width: 6),
+                  Text(
+                    w.word,
+                    style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  // ── 26. PRIVACY CONTENT ──
   Widget _buildPrivacyContent() {
     return Column(
       children: [

@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/ui_constants.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../database/app_database.dart';
+import '../providers/memories_providers.dart';
 
-class MemoriesScreen extends StatefulWidget {
+class MemoriesScreen extends ConsumerStatefulWidget {
   const MemoriesScreen({super.key});
 
   @override
-  State<MemoriesScreen> createState() => _MemoriesScreenState();
+  ConsumerState<MemoriesScreen> createState() => _MemoriesScreenState();
 }
 
-class _MemoriesScreenState extends State<MemoriesScreen> {
+class _MemoriesScreenState extends ConsumerState<MemoriesScreen> {
   final _scrollController = ScrollController();
-  final int _currentNavIndex = 2; // Selected tab for Memories/Vault
 
   @override
   void dispose() {
@@ -24,6 +26,9 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final stats = ref.watch(vaultStorageStatsProvider);
+    final recentMemoriesAsync = ref.watch(recentMemoriesProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFF03050A),
       body: Stack(
@@ -65,7 +70,7 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
                         const SizedBox(height: Spacing.xs),
 
                         // Storage Used Card
-                        _buildStorageCard(),
+                        _buildStorageCard(stats),
                         const SizedBox(height: Spacing.lg),
 
                         // Category Filter Chips
@@ -73,11 +78,11 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
                         const SizedBox(height: Spacing.lg),
 
                         // Recent Memories Section
-                        _buildRecentMemoriesSection(),
+                        _buildRecentMemoriesSection(recentMemoriesAsync),
                         const SizedBox(height: Spacing.lg),
 
                         // Albums Section
-                        _buildAlbumsSection(),
+                        _buildAlbumsSection(stats),
                         const SizedBox(height: Spacing.lg),
 
                         // Security Shield Banner
@@ -89,14 +94,6 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
                 ),
               ],
             ),
-          ),
-
-          // 3. Bottom Navigation
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: _buildBottomNav(context),
           ),
         ],
       ),
@@ -214,7 +211,7 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
     );
   }
 
-  Widget _buildStorageCard() {
+  Widget _buildStorageCard(VaultStorageStats stats) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF070B14),
@@ -261,7 +258,7 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '4.27 GB',
+                      stats.formattedUsage,
                       style: GoogleFonts.inter(
                         color: Colors.white,
                         fontSize: 18,
@@ -286,18 +283,17 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
                     color: const Color(0xFF1E293B),
                     borderRadius: BorderRadius.circular(3),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 50,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF00E5FF), Color(0xFF7C3AED)],
-                          ),
-                          borderRadius: BorderRadius.circular(3),
+                  child: FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: stats.percentOfLimit,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF00E5FF), Color(0xFF7C3AED)],
                         ),
+                        borderRadius: BorderRadius.circular(3),
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ],
@@ -392,14 +388,7 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
     );
   }
 
-  Widget _buildRecentMemoriesSection() {
-    final items = [
-      ('Manipur Trip', '2 May 2024', 'assets/illustrations/timeline_manali.png', Icons.image_outlined),
-      ('Family Time', '18 Apr 2024', 'assets/illustrations/timeline_family.png', Icons.image_outlined),
-      ('Project Ideas', '10 Apr 2024', 'assets/illustrations/timeline_career.png', Icons.description_outlined),
-      ('Live Concert', '5 Apr 2024', 'assets/illustrations/concert.png', Icons.play_circle_outline_rounded),
-    ];
-
+  Widget _buildRecentMemoriesSection(AsyncValue<List<MemoriesTableData>> recentMemoriesAsync) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -417,99 +406,135 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
           ],
         ),
         const SizedBox(height: Spacing.md),
-        SizedBox(
-          height: 150,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final r = items[index];
+        recentMemoriesAsync.when(
+          data: (items) {
+            if (items.isEmpty) {
               return Container(
-                width: 120,
-                margin: const EdgeInsets.only(right: 12),
+                height: 120,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
+                  color: const Color(0xFF070B14),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: const Color(0xFF1E293B)),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Stack(
-                    children: [
-                      // Image Background
-                      Positioned.fill(
-                        child: Image.asset(
-                          r.$3,
-                          fit: BoxFit.cover,
-                          errorBuilder: (c, e, s) => Container(color: const Color(0xFF090D1A)),
-                        ),
-                      ),
-                      // Dark gradient overlay
-                      Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Colors.transparent, Colors.black.withAlpha(180)],
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Media Type Badge
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.black.withAlpha(150),
-                          ),
-                          child: Icon(r.$4, color: Colors.white, size: 12),
-                        ),
-                      ),
-                      // Details Text
-                      Positioned(
-                        left: 8,
-                        right: 8,
-                        bottom: 8,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              r.$1,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.inter(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              r.$2,
-                              style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 8, fontWeight: FontWeight.w500),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                child: Text(
+                  'No recent memories yet',
+                  style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 12),
                 ),
               );
-            },
+            }
+            return SizedBox(
+              height: 150,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  final assetPath = _getAssetForCategory(item.category);
+                  final icon = _getIconForCategory(item.category);
+
+                  return Container(
+                    width: 130,
+                    margin: const EdgeInsets.only(right: 12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFF1E293B)),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: Image.asset(
+                              assetPath,
+                              fit: BoxFit.cover,
+                              errorBuilder: (c, e, s) => Container(color: const Color(0xFF090D1A)),
+                            ),
+                          ),
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [Colors.transparent, Colors.black.withAlpha(180)],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.black.withAlpha(150),
+                              ),
+                              child: Icon(icon, color: Colors.white, size: 12),
+                            ),
+                          ),
+                          Positioned(
+                            left: 8,
+                            right: 8,
+                            bottom: 8,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  item.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.inter(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                ),
+                                if (item.date != null)
+                                  Text(
+                                    item.date!,
+                                    style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 8, fontWeight: FontWeight.w500),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+          loading: () => const SizedBox(
+            height: 150,
+            child: Center(
+              child: CircularProgressIndicator(color: Color(0xFF00E5FF)),
+            ),
+          ),
+          error: (err, stack) => Container(
+            height: 120,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: const Color(0xFF070B14),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF1E293B)),
+            ),
+            child: Text(
+              'Error loading memories',
+              style: GoogleFonts.inter(color: Colors.redAccent, fontSize: 12),
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildAlbumsSection() {
+  Widget _buildAlbumsSection(VaultStorageStats stats) {
     final albums = [
-      ('Family', '128 Items', 'assets/illustrations/timeline_family.png', Icons.image_outlined, const Color(0xFF10B981)),
-      ('Travel', '64 Items', 'assets/illustrations/timeline_manali.png', Icons.image_outlined, const Color(0xFF00E5FF)),
-      ('Documents', '45 Items', 'assets/illustrations/timeline_college.png', Icons.description_outlined, const Color(0xFF8B5CF6)),
-      ('Achievements', '23 Items', 'assets/illustrations/timeline_baby.png', Icons.emoji_events_outlined, const Color(0xFFF59E0B)),
-      ('Work', '37 Items', 'assets/illustrations/timeline_career.png', Icons.folder_outlined, const Color(0xFF3B82F6)),
-      ('Memories', '89 Items', 'assets/illustrations/timeline_grad.png', Icons.favorite_border_rounded, const Color(0xFFEC4899)),
+      ('Text Memories', '${stats.memoriesCount} Items', 'assets/illustrations/timeline_grad.png', Icons.favorite_border_rounded, const Color(0xFFEC4899)),
+      ('Photos & Videos', '${stats.photosCount} Items', 'assets/illustrations/timeline_manali.png', Icons.image_outlined, const Color(0xFF00E5FF)),
+      ('Documents & Files', '${stats.documentsCount} Items', 'assets/illustrations/timeline_college.png', Icons.description_outlined, const Color(0xFF8B5CF6)),
+      ('Voice Recordings', '${stats.audioCount} Items', 'assets/illustrations/timeline_career.png', Icons.audiotrack_outlined, const Color(0xFFF59E0B)),
     ];
 
     return Column(
@@ -519,7 +544,7 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Albums',
+              'Vault Categories',
               style: GoogleFonts.inter(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
             ),
             Text(
@@ -708,93 +733,33 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
     );
   }
 
-  Widget _buildBottomNav(BuildContext context) {
-    final items = [
-      ('Dashboard', Icons.grid_view_rounded, 0),
-      ('Chat', Icons.chat_bubble_outline_rounded, 1),
-      ('', Icons.add_rounded, -1), // center FAB
-      ('Memories', Icons.memory_outlined, 2),
-      ('Profile', Icons.person_outline_rounded, 3),
-    ];
+  String _getAssetForCategory(String? category) {
+    switch (category?.toLowerCase()) {
+      case 'family':
+        return 'assets/illustrations/timeline_family.png';
+      case 'travel':
+        return 'assets/illustrations/timeline_manali.png';
+      case 'education':
+        return 'assets/illustrations/timeline_college.png';
+      case 'career':
+        return 'assets/illustrations/timeline_career.png';
+      default:
+        return 'assets/illustrations/timeline_grad.png';
+    }
+  }
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(
-        Spacing.lg,
-        0,
-        Spacing.lg,
-        Spacing.sm,
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: Spacing.sm,
-        vertical: 6,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xFF090D1A).withAlpha(220),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: const Color(0xFF1E293B),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(items.length, (index) {
-          final item = items[index];
-          if (item.$3 == -1) {
-            // Center FAB
-            return Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF7C3AED).withAlpha(77),
-                    blurRadius: 12,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.add_rounded,
-                color: Colors.white,
-                size: 24,
-              ),
-            );
-          }
-
-          final isActive = _currentNavIndex == item.$3;
-          return GestureDetector(
-            onTap: () {
-              context.go(RouteNames.dashboard);
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  item.$2,
-                  color: isActive
-                      ? const Color(0xFF7C3AED)
-                      : const Color(0xFF64748B),
-                  size: 20,
-                ),
-                Text(
-                  item.$1,
-                  style: TextStyle(
-                    color: isActive
-                        ? const Color(0xFF7C3AED)
-                        : const Color(0xFF64748B),
-                    fontSize: 9,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ),
-    );
+  IconData _getIconForCategory(String? category) {
+    switch (category?.toLowerCase()) {
+      case 'family':
+        return Icons.favorite_border_rounded;
+      case 'travel':
+        return Icons.image_outlined;
+      case 'education':
+        return Icons.description_outlined;
+      case 'career':
+        return Icons.business_center_outlined;
+      default:
+        return Icons.psychology_outlined;
+    }
   }
 }

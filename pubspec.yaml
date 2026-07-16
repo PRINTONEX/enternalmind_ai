@@ -58,6 +58,9 @@ dependencies:
 
   # ── File Picker ──
   file_selector: ^1.0.0
+  dio: ^5.10.0
+  uuid: ^4.6.0
+  flex_color_scheme: ^8.4.0
 
 dev_dependencies:
   flutter_test:
