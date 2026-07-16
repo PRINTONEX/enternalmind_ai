@@ -32,8 +32,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late TextEditingController _occupationCtrl;
   late TextEditingController _aboutCtrl;
   late TextEditingController _quoteCtrl;
+  int? _lastProfileId;
 
-  bool _controllersInitialized = false;
+  @override
+  void initState() {
+    super.initState();
+    _fullNameCtrl = TextEditingController();
+    _nicknameCtrl = TextEditingController();
+    _birthPlaceCtrl = TextEditingController();
+    _currentCityCtrl = TextEditingController();
+    _nationalityCtrl = TextEditingController();
+    _occupationCtrl = TextEditingController();
+    _aboutCtrl = TextEditingController();
+    _quoteCtrl = TextEditingController();
+  }
 
   @override
   void dispose() {
@@ -49,17 +61,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.dispose();
   }
 
-  void _initControllers(ProfileModel? profile) {
-    if (_controllersInitialized) return;
-    _fullNameCtrl = TextEditingController(text: profile?.fullName ?? '');
-    _nicknameCtrl = TextEditingController(text: profile?.nickname ?? '');
-    _birthPlaceCtrl = TextEditingController(text: profile?.birthPlace ?? '');
-    _currentCityCtrl = TextEditingController(text: profile?.currentCity ?? '');
-    _nationalityCtrl = TextEditingController(text: profile?.nationality ?? '');
-    _occupationCtrl = TextEditingController(text: profile?.occupation ?? '');
-    _aboutCtrl = TextEditingController(text: profile?.about ?? '');
-    _quoteCtrl = TextEditingController(text: profile?.favoriteQuotes ?? '');
-    _controllersInitialized = true;
+  void _syncControllers(ProfileModel? profile) {
+    if (profile == null) return;
+    // Only update when profile ID changes (new profile loaded)
+    if (profile.id == _lastProfileId) return;
+    _lastProfileId = profile.id;
+    _fullNameCtrl.text = profile.fullName;
+    _nicknameCtrl.text = profile.nickname ?? '';
+    _birthPlaceCtrl.text = profile.birthPlace ?? '';
+    _currentCityCtrl.text = profile.currentCity ?? '';
+    _nationalityCtrl.text = profile.nationality ?? '';
+    _occupationCtrl.text = profile.occupation ?? '';
+    _aboutCtrl.text = profile.about ?? '';
+    _quoteCtrl.text = profile.favoriteQuotes ?? '';
   }
 
   void _saveIdentity() {
