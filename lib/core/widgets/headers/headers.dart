@@ -17,6 +17,7 @@ class PageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final trailingWidget = trailing;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -46,7 +47,7 @@ class PageHeader extends StatelessWidget {
               ],
             ],
           ),
-          if (trailing != null) trailing!,
+          trailingWidget ?? const SizedBox.shrink(),
         ],
       ),
     );

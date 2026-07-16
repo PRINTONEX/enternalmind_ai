@@ -19,7 +19,7 @@ import '../../../core/theme/app_gradients.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/error_popup.dart';
 import '../../../core/widgets/floating_particles.dart';
-import '../../../core/widgets/neon_loader.dart';
+import '../../../core/widgets/loading/loading.dart';
 import '../splash_providers.dart';
 
 /// {@macro splash_screen}
