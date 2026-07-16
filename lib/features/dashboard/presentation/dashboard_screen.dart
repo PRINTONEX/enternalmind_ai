@@ -160,7 +160,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   // ── Header ──
   Widget _buildHeader(AsyncValue<ProfileModel?> profileAsync) {
-    // final profile = profileAsync.valueOrNull;
+    final profile = profileAsync.valueOrNull;
+    final initial = profile != null && profile.fullName.isNotEmpty
+        ? profile.fullName[0].toUpperCase()
+        : 'A';
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -282,10 +285,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   shape: BoxShape.circle,
                   color: Color(0xFF1A1F33),
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
-                    'A',
-                    style: TextStyle(
+                    initial,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -302,6 +305,25 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   // ── Hero Card ──
   Widget _buildHeroCard(AsyncValue<ProfileModel?> profileAsync) {
+    final profile = profileAsync.valueOrNull;
+    final name = profile?.fullName.isNotEmpty == true
+        ? profile!.fullName
+        : 'Aftab Shah';
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'A';
+    final quote = profile?.favoriteQuotes?.isNotEmpty == true
+        ? profile!.favoriteQuotes!
+        : (profile?.lifePhilosophy?.isNotEmpty == true
+            ? profile!.lifePhilosophy!
+            : '"Technology should improve people\'s lives."');
+    final birthDateStr = profile?.birthDate != null
+        ? '${profile!.birthDate!.day.toString().padLeft(2, '0')} ${_getMonthName(profile.birthDate!.month)} ${profile.birthDate!.year}'
+        : '04 Dec 1997';
+    final location = profile?.currentCity?.isNotEmpty == true
+        ? profile!.currentCity!
+        : (profile?.birthPlace?.isNotEmpty == true
+            ? profile!.birthPlace!
+            : 'Thoubal');
+
     return GlassCard(
       borderRadius: 24,
       padding: const EdgeInsets.all(Spacing.lg),
@@ -336,10 +358,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             shape: BoxShape.circle,
                             color: Color(0xFF111827),
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Text(
-                              'A',
-                              style: TextStyle(
+                              initial,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 24,
                                 fontWeight: FontWeight.w700,
@@ -360,9 +382,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        const Text(
-                          'Aftab Shah',
-                          style: TextStyle(
+                        Text(
+                          name,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
@@ -385,8 +407,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '"Technology should improve people\'s lives."',
-                      style: TextStyle(
+                      quote,
+                      style: const TextStyle(
                         color: AppColors.textTertiary,
                         fontSize: 12,
                         fontStyle: FontStyle.italic,
@@ -395,10 +417,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     const SizedBox(height: Spacing.md),
                     Row(
                       children: [
-                        _miniInfoCard(Icons.cake_outlined, '04 Dec 1997'),
+                        _miniInfoCard(Icons.cake_outlined, birthDateStr),
                         const SizedBox(width: Spacing.sm),
                         _miniInfoCard(
-                            Icons.location_on_outlined, 'Thoubal'),
+                            Icons.location_on_outlined, location),
                       ],
                     ),
                   ],
@@ -621,12 +643,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     AsyncValue<int> educationCountAsync,
     AsyncValue<int> careerCountAsync,
   ) {
+    final profileExists = profileAsync.valueOrNull != null ? '1' : '0';
+    final familyCount = familyCountAsync.valueOrNull ?? 0;
+    final educationCount = educationCountAsync.valueOrNull ?? 0;
+    final careerCount = careerCountAsync.valueOrNull ?? 0;
+
     final stats = [
-      ('Profile', Icons.person_outline, '1'),
-      ('Family', Icons.family_restroom_outlined, '7'),
-      ('Education', Icons.school_outlined, '3'),
-      ('Career', Icons.work_outline, '2'),
-      ('Memories', Icons.memory_outlined, '10'),
+      ('Profile', Icons.person_outline, profileExists),
+      ('Family', Icons.family_restroom_outlined, '$familyCount'),
+      ('Education', Icons.school_outlined, '$educationCount'),
+      ('Career', Icons.work_outline, '$careerCount'),
+      ('Memories', Icons.memory_outlined, '0'),
     ];
 
     return Container(
@@ -680,6 +707,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         }),
       ),
     );
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months[month - 1];
   }
 
   Color _statColor(int index) {

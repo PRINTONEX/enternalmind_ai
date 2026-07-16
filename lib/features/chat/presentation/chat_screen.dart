@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/ui_constants.dart';
+import '../../dashboard/providers/dashboard_providers.dart';
 import '../providers/chat_providers.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -281,6 +282,26 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _buildProfileCard() {
+    final profileAsync = ref.watch(dashProfileProvider);
+    final profile = profileAsync.valueOrNull;
+    final name = profile?.fullName.isNotEmpty == true
+        ? profile!.fullName
+        : 'Aftab Shah';
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'A';
+    final quote = profile?.about?.isNotEmpty == true
+        ? profile!.about!
+        : (profile?.favoriteQuotes?.isNotEmpty == true
+            ? profile!.favoriteQuotes!
+            : '"I exist to learn, remember and grow just like you."');
+    final birthDateStr = profile?.birthDate != null
+        ? '${profile!.birthDate!.day.toString().padLeft(2, '0')} ${_getMonthName(profile.birthDate!.month)} ${profile.birthDate!.year}'
+        : '04 Dec 1997';
+    final location = profile?.birthPlace?.isNotEmpty == true
+        ? profile!.birthPlace!
+        : (profile?.currentCity?.isNotEmpty == true
+            ? profile!.currentCity!
+            : 'Phoudel, Manipur');
+
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF070B14),
@@ -316,20 +337,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         shape: BoxShape.circle,
                         color: Color(0xFF070B14),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(38),
-                        child: Image.asset(
-                          'assets/avatars/aftab.png',
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Center(
-                              child: Icon(
-                                Icons.person_rounded,
-                                color: Color(0xFF64748B),
-                                size: 36,
-                              ),
-                            );
-                          },
+                      child: Center(
+                        child: Text(
+                          initial,
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 32,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ),
@@ -369,7 +384,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     Row(
                       children: [
                         Text(
-                          'Aftab Shah',
+                          name,
                           style: GoogleFonts.inter(
                             color: Colors.white,
                             fontSize: 18,
@@ -386,7 +401,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '“I exist to learn, remember and grow just like you.”',
+                      quote,
                       style: GoogleFonts.inter(
                         color: const Color(0xFF94A3B8),
                         fontSize: 13,
@@ -438,7 +453,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 child: _buildInfoTag(
                   icon: Icons.calendar_today_rounded,
                   label: 'Born',
-                  value: '04 Dec 1997',
+                  value: birthDateStr,
                 ),
               ),
               const SizedBox(width: 12),
@@ -446,7 +461,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 child: _buildInfoTag(
                   icon: Icons.location_on_outlined,
                   label: 'From',
-                  value: 'Phoudel, Manipur',
+                  value: location,
                 ),
               ),
               const SizedBox(width: 12),
@@ -487,6 +502,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ],
       ),
     );
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months[month - 1];
   }
 
   Widget _buildInfoTag({

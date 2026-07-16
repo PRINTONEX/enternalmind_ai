@@ -1,24 +1,99 @@
+/// Profile Screen — editable sections loaded from and saved to the database.
+library;
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/ui_constants.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../dashboard/providers/dashboard_providers.dart';
+import '../../wizard/models/wizard_models.dart';
+import '../../wizard/providers/wizard_providers.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final _scrollController = ScrollController();
-  int? _expandedSectionIndex = 0; // First section open by default
+  int? _expandedSectionIndex = 0;
+
+  // Identity controllers
+  late TextEditingController _fullNameCtrl;
+  late TextEditingController _nicknameCtrl;
+  late TextEditingController _birthPlaceCtrl;
+  late TextEditingController _currentCityCtrl;
+  late TextEditingController _nationalityCtrl;
+  late TextEditingController _occupationCtrl;
+  late TextEditingController _aboutCtrl;
+  late TextEditingController _quoteCtrl;
+
+  bool _controllersInitialized = false;
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _fullNameCtrl.dispose();
+    _nicknameCtrl.dispose();
+    _birthPlaceCtrl.dispose();
+    _currentCityCtrl.dispose();
+    _nationalityCtrl.dispose();
+    _occupationCtrl.dispose();
+    _aboutCtrl.dispose();
+    _quoteCtrl.dispose();
     super.dispose();
+  }
+
+  void _initControllers(ProfileModel? profile) {
+    if (_controllersInitialized) return;
+    _fullNameCtrl = TextEditingController(text: profile?.fullName ?? '');
+    _nicknameCtrl = TextEditingController(text: profile?.nickname ?? '');
+    _birthPlaceCtrl = TextEditingController(text: profile?.birthPlace ?? '');
+    _currentCityCtrl = TextEditingController(text: profile?.currentCity ?? '');
+    _nationalityCtrl = TextEditingController(text: profile?.nationality ?? '');
+    _occupationCtrl = TextEditingController(text: profile?.occupation ?? '');
+    _aboutCtrl = TextEditingController(text: profile?.about ?? '');
+    _quoteCtrl = TextEditingController(text: profile?.favoriteQuotes ?? '');
+    _controllersInitialized = true;
+  }
+
+  void _saveIdentity() {
+    final profile = ref.read(dashProfileProvider).valueOrNull;
+    if (profile == null) return;
+    ref.read(wizardProvider.notifier).updateProfile(
+          profile.copyWith(
+            fullName: _fullNameCtrl.text.trim().isEmpty
+                ? profile.fullName
+                : _fullNameCtrl.text.trim(),
+            nickname: _nicknameCtrl.text.trim().isEmpty
+                ? null
+                : _nicknameCtrl.text.trim(),
+            birthPlace: _birthPlaceCtrl.text.trim().isEmpty
+                ? null
+                : _birthPlaceCtrl.text.trim(),
+            currentCity: _currentCityCtrl.text.trim().isEmpty
+                ? null
+                : _currentCityCtrl.text.trim(),
+            nationality: _nationalityCtrl.text.trim().isEmpty
+                ? null
+                : _nationalityCtrl.text.trim(),
+            occupation: _occupationCtrl.text.trim().isEmpty
+                ? null
+                : _occupationCtrl.text.trim(),
+            about: _aboutCtrl.text.trim().isEmpty
+                ? null
+                : _aboutCtrl.text.trim(),
+            favoriteQuotes: _quoteCtrl.text.trim().isEmpty
+                ? null
+                : _quoteCtrl.text.trim(),
+          ),
+        );
+    _toggleSection(0);
   }
 
   void _toggleSection(int index) {
@@ -33,8 +108,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final profileAsync = ref.watch(dashProfileProvider);
+    final profile = profileAsync.valueOrNull;
+
+    if (!_controllersInitialized) {
+      _initControllers(profile);
+    }
+
+    final name = profile?.fullName.isNotEmpty == true
+        ? profile!.fullName
+        : 'Aftab Shah';
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'A';
+
     return Scaffold(
-      backgroundColor: Colors.transparent, // Hosted in dashboard shell
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           // ── Radial background glow ──
@@ -63,7 +150,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               children: [
                 // 1. Header Area
-                _buildProfileHeader(),
+                _buildProfileHeader(name, initial),
                 const SizedBox(height: Spacing.lg),
 
                 // 2. Expandable Section Cards List
@@ -78,7 +165,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         title: 'Identity',
                         description: 'Your fundamental details, personal history, and bio.',
                         color: const Color(0xFF7C3AED),
-                        content: _buildIdentityContent(),
+                        content: _buildIdentityContent(profile),
                       ),
                       _buildSpacing(),
 
@@ -314,7 +401,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildSpacing() => const SizedBox(height: 20);
 
   // ── Header Section ──
-  Widget _buildProfileHeader() {
+  Widget _buildProfileHeader(String name, String initial) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -351,12 +438,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ],
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(52),
-                  child: Image.asset(
-                    'assets/avatars/aftab.png',
-                    fit: BoxFit.cover,
-                    errorBuilder: (c, e, s) => const Icon(Icons.person, size: 50, color: Colors.white),
+                child: Center(
+                  child: Text(
+                    initial,
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 48,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
@@ -385,7 +474,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Aftab Shah',
+                name,
                 style: GoogleFonts.inter(
                   color: Colors.white,
                   fontSize: 22,
@@ -587,7 +676,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(width: 12),
                   GestureDetector(
-                    onTap: () => _toggleSection(index),
+                    onTap: index == 0 ? _saveIdentity : () => _toggleSection(index),
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
@@ -620,6 +709,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String label,
     required String hint,
     required IconData icon,
+    TextEditingController? controller,
     bool isMultiline = false,
   }) {
     return Column(
@@ -642,6 +732,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: TextField(
+            controller: controller,
             maxLines: isMultiline ? 4 : 1,
             style: GoogleFonts.inter(color: Colors.white, fontSize: 13),
             decoration: InputDecoration(
@@ -657,21 +748,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // ── 1. IDENTITY CONTENT ──
-  Widget _buildIdentityContent() {
+  Widget _buildIdentityContent(ProfileModel? profile) {
     return Column(
       children: [
-        _buildField(label: 'Full Name', hint: 'Aftab Shah', icon: Icons.person_outline_rounded),
+        _buildField(
+          label: 'Full Name',
+          hint: 'Aftab Shah',
+          icon: Icons.person_outline_rounded,
+          controller: _fullNameCtrl,
+        ),
         const SizedBox(height: 14),
-        _buildField(label: 'Nickname', hint: 'Aftab', icon: Icons.alternate_email_rounded),
+        _buildField(
+          label: 'Nickname',
+          hint: 'Aftab',
+          icon: Icons.alternate_email_rounded,
+          controller: _nicknameCtrl,
+        ),
         const SizedBox(height: 14),
         Row(
           children: [
             Expanded(
-              child: _buildField(label: 'Date of Birth', hint: '04 Dec 1997', icon: Icons.calendar_today_rounded),
+              child: _buildField(
+                label: 'Date of Birth',
+                hint: profile?.birthDate != null
+                    ? '${profile!.birthDate!.day.toString().padLeft(2, '0')} ${_getMonthName(profile.birthDate!.month)} ${profile.birthDate!.year}'
+                    : '04 Dec 1997',
+                icon: Icons.calendar_today_rounded,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildField(label: 'Gender', hint: 'Male', icon: Icons.wc_rounded),
+              child: _buildField(
+                label: 'Gender',
+                hint: profile?.gender ?? 'Male',
+                icon: Icons.wc_rounded,
+              ),
             ),
           ],
         ),
@@ -679,22 +790,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Row(
           children: [
             Expanded(
-              child: _buildField(label: 'Place of Birth', hint: 'Phoudel, Manipur', icon: Icons.location_on_outlined),
+              child: _buildField(
+                label: 'Place of Birth',
+                hint: profile?.birthPlace ?? 'Phoudel, Manipur',
+                icon: Icons.location_on_outlined,
+                controller: _birthPlaceCtrl,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildField(label: 'Current City', hint: 'Bangalore', icon: Icons.home_outlined),
+              child: _buildField(
+                label: 'Current City',
+                hint: profile?.currentCity ?? 'Bangalore',
+                icon: Icons.home_outlined,
+                controller: _currentCityCtrl,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 14),
-        _buildField(label: 'Nationality', hint: 'Indian', icon: Icons.public_rounded),
+        _buildField(
+          label: 'Nationality',
+          hint: profile?.nationality ?? 'Indian',
+          icon: Icons.public_rounded,
+          controller: _nationalityCtrl,
+        ),
         const SizedBox(height: 14),
-        _buildField(label: 'Occupation', hint: 'Software Engineer', icon: Icons.work_outline_rounded),
+        _buildField(
+          label: 'Occupation',
+          hint: profile?.occupation ?? 'Software Engineer',
+          icon: Icons.work_outline_rounded,
+          controller: _occupationCtrl,
+        ),
         const SizedBox(height: 14),
-        _buildField(label: 'About Me', hint: 'Curious programmer trying to map human memories with AI...', icon: Icons.info_outline_rounded, isMultiline: true),
+        _buildField(
+          label: 'Favorite Quote',
+          hint: profile?.favoriteQuotes ?? 'Curious programmer...',
+          icon: Icons.format_quote_rounded,
+          controller: _quoteCtrl,
+          isMultiline: true,
+        ),
+        const SizedBox(height: 14),
+        _buildField(
+          label: 'About Me',
+          hint: profile?.about ?? 'Curious programmer trying to map human memories with AI...',
+          icon: Icons.info_outline_rounded,
+          controller: _aboutCtrl,
+          isMultiline: true,
+        ),
       ],
     );
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months[month - 1];
   }
 
   // ── 2. LIFE STORIES CONTENT ──
@@ -755,7 +908,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Question card
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -795,7 +947,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Mood Selector
         Text(
           'How is your mood today?',
           style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.bold),
@@ -1061,7 +1212,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-              // Waveform representation
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: List.generate(20, (index) {
@@ -1163,8 +1313,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: skills.map((skill) {
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
                   colors: [Color(0xFF7C3AED), Color(0xFF00E5FF)],
                 ),
                 borderRadius: BorderRadius.circular(20),
