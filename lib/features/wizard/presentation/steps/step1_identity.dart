@@ -438,7 +438,7 @@ class _Step1IdentityState extends ConsumerState<Step1Identity> {
       prefixIcon: prefixIcon,
       child: DropdownButtonHideUnderline(
         child: DropdownButtonFormField<T>(
-          value: value,
+          initialValue: value,
           items: items,
           onChanged: onChanged,
           dropdownColor: const Color(0xFF0F172A),

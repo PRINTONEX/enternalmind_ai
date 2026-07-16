@@ -103,14 +103,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           SafeArea(
             child: Column(
               children: [
-                // 1. Header Bar
+                // 1. Header Bar (WhatsApp style)
                 _buildHeader(context),
-
-                // 2. Profile Status Card (Fixed at top)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.xs),
-                  child: _buildProfileCard(),
-                ),
 
                 // Date separator ("Today")
                 Padding(
@@ -165,393 +159,184 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _buildHeader(BuildContext context) {
-    return Padding(
+    final profileAsync = ref.watch(dashProfileProvider);
+    final profile = profileAsync.valueOrNull;
+    final name = profile?.fullName.isNotEmpty == true ? profile!.fullName : 'Aftab Shah';
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'A';
+
+    return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: Spacing.lg,
-        vertical: Spacing.xs,
+        horizontal: Spacing.md,
+        vertical: Spacing.sm,
+      ),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Color(0xFF1E293B), width: 1.0),
+        ),
       ),
       child: Row(
         children: [
           // Back button
           GestureDetector(
             onTap: () {
-              // Custom action to navigate back or reset index
-              // Handled by the parent dashboard navigation shell, but support pop if on separate route.
               if (Navigator.canPop(context)) {
                 Navigator.pop(context);
               }
             },
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF0F172A),
-                border: Border.all(color: const Color(0xFF1E293B), width: 1.2),
-              ),
-              child: const Icon(
-                Icons.arrow_back_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
+            child: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.white,
+              size: 20,
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 10),
 
-          // Icon + Titles
+          // Glowing Avatar (WhatsApp style)
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF8B5CF6).withAlpha(20),
+              gradient: LinearGradient(
+                colors: [Color(0xFF8B5CF6), Color(0xFF00E5FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
-            child: const Center(
-              child: Icon(
-                Icons.chat_bubble_outline_rounded,
-                color: Color(0xFF8B5CF6),
-                size: 20,
+            padding: const EdgeInsets.all(1.5),
+            child: Container(
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Color(0xFF070B14),
+              ),
+              child: Center(
+                child: Text(
+                  initial,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: GoogleFonts.inter().fontFamily,
+                  ),
+                ),
               ),
             ),
           ),
           const SizedBox(width: 12),
+
+          // Name and Status (WhatsApp style)
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Neural Chat',
-                  style: GoogleFonts.inter(
+                  name,
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: GoogleFonts.inter().fontFamily,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  'Chat with your AI replica',
-                  style: GoogleFonts.inter(
-                    color: const Color(0xFF64748B),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Actions
-          GestureDetector(
-            onTap: () {},
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF0F172A),
-                border: Border.all(color: const Color(0xFF1E293B), width: 1.2),
-              ),
-              child: const Icon(
-                Icons.ios_share_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          GestureDetector(
-            onTap: () {},
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF0F172A),
-                border: Border.all(color: const Color(0xFF1E293B), width: 1.2),
-              ),
-              child: const Icon(
-                Icons.more_horiz_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileCard() {
-    final profileAsync = ref.watch(dashProfileProvider);
-    final profile = profileAsync.valueOrNull;
-    final name = profile?.fullName.isNotEmpty == true
-        ? profile!.fullName
-        : 'Aftab Shah';
-    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'A';
-    final quote = profile?.about?.isNotEmpty == true
-        ? profile!.about!
-        : (profile?.favoriteQuotes?.isNotEmpty == true
-            ? profile!.favoriteQuotes!
-            : '"I exist to learn, remember and grow just like you."');
-    final birthDateStr = profile?.birthDate != null
-        ? '${profile!.birthDate!.day.toString().padLeft(2, '0')} ${_getMonthName(profile.birthDate!.month)} ${profile.birthDate!.year}'
-        : '04 Dec 1997';
-    final location = profile?.birthPlace?.isNotEmpty == true
-        ? profile!.birthPlace!
-        : (profile?.currentCity?.isNotEmpty == true
-            ? profile!.currentCity!
-            : 'Phoudel, Manipur');
-
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF070B14),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF1E293B), width: 1.2),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              // Avatar Stack with Online dot
-              Column(
-                children: [
-                  Container(
-                    width: 76,
-                    height: 76,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [
-                          Color(0xFFEC4899),
-                          Color(0xFF8B5CF6),
-                          Color(0xFF00E5FF)
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    padding: const EdgeInsets.all(2.5),
-                    child: Container(
+                Row(
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Color(0xFF070B14),
-                      ),
-                      child: Center(
-                        child: Text(
-                          initial,
-                          style: GoogleFonts.inter(
-                            color: Colors.white,
-                            fontSize: 32,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                        color: Color(0xFF10B981),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 7,
-                        height: 7,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFF10B981),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Online',
-                        style: GoogleFonts.inter(
-                          color: const Color(0xFF64748B),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(width: 16),
-
-              // Bio Text
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          name,
-                          style: GoogleFonts.inter(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        const Icon(
-                          Icons.verified_rounded,
-                          color: Color(0xFF3B82F6),
-                          size: 16,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
+                    const SizedBox(width: 4),
                     Text(
-                      quote,
-                      style: GoogleFonts.inter(
-                        color: const Color(0xFF94A3B8),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        height: 1.4,
+                      'Online',
+                      style: TextStyle(
+                        color: const Color(0xFF10B981),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: GoogleFonts.inter().fontFamily,
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 10),
-
-              // Brain Image Hologram
-              Container(
-                width: 76,
-                height: 76,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: const Color(0xFF8B5CF6).withAlpha(10),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.asset(
-                    'assets/illustrations/neon_brain.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Center(
-                        child: Icon(
-                          Icons.psychology_outlined,
-                          color: Color(0xFF8B5CF6),
-                          size: 32,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-          const Divider(color: Color(0xFF1E293B), height: 1),
-          const SizedBox(height: 16),
-
-          // Details grid (Born, From, View Profile)
-          Row(
-            children: [
-              Expanded(
-                child: _buildInfoTag(
-                  icon: Icons.calendar_today_rounded,
-                  label: 'Born',
-                  value: birthDateStr,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildInfoTag(
-                  icon: Icons.location_on_outlined,
-                  label: 'From',
-                  value: location,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // View Profile Button
-              GestureDetector(
-                onTap: () {},
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF00E5FF).withAlpha(100), width: 1.2),
-                    color: const Color(0xFF00E5FF).withAlpha(8),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'View Profile',
-                        style: GoogleFonts.inter(
-                          color: const Color(0xFF00E5FF),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      const Icon(
-                        Icons.arrow_forward_rounded,
-                        color: Color(0xFF00E5FF),
-                        size: 12,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getMonthName(int month) {
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return months[month - 1];
-  }
-
-  Widget _buildInfoTag({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF090D1A),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF1E293B)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, color: const Color(0xFF00E5FF), size: 14),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  label,
-                  style: GoogleFonts.inter(
-                    color: const Color(0xFF64748B),
-                    fontSize: 9,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
               ],
+            ),
+          ),
+
+          // Voice Call Icon Button
+          GestureDetector(
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Starting Voice Call with Digital Replica...'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF0F172A),
+                border: Border.all(color: const Color(0xFF1E293B)),
+              ),
+              child: const Icon(
+                Icons.call_rounded,
+                color: Color(0xFF00E5FF),
+                size: 18,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // Video Call Icon Button
+          GestureDetector(
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Initializing Holographic Video Session...'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF0F172A),
+                border: Border.all(color: const Color(0xFF1E293B)),
+              ),
+              child: const Icon(
+                Icons.videocam_rounded,
+                color: Color(0xFFC084FC),
+                size: 18,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // More Settings Button
+          GestureDetector(
+            onTap: () {},
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF0F172A),
+                border: Border.all(color: const Color(0xFF1E293B)),
+              ),
+              child: const Icon(
+                Icons.more_vert_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
             ),
           ),
         ],

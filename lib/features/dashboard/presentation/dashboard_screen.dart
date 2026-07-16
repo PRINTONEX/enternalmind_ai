@@ -1223,7 +1223,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           SizedBox(height: _scale(8)),
           // Family tree lines & avatars
           SizedBox(
-            height: _scale(55),
+            height: _scale(62),
             child: Stack(
               alignment: Alignment.topCenter,
               children: [
@@ -1374,7 +1374,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           SizedBox(height: _scale(8)),
           // Waveform
           SizedBox(
-            height: _scale(55),
+            height: _scale(62),
             child: Row(
               children: [
                 Expanded(

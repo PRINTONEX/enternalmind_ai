@@ -16,7 +16,6 @@ class FamilyTreeScreen extends ConsumerStatefulWidget {
 
 class _FamilyTreeScreenState extends ConsumerState<FamilyTreeScreen> {
   final _scrollController = ScrollController();
-  final int _currentNavIndex = 3; // Highlight Profile/Family tree area
 
   @override
   void dispose() {

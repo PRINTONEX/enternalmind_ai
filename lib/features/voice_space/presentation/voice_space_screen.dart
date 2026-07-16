@@ -14,7 +14,6 @@ class VoiceSpaceScreen extends StatefulWidget {
 
 class _VoiceSpaceScreenState extends State<VoiceSpaceScreen> {
   final _scrollController = ScrollController();
-  final int _currentNavIndex = 3; // Linked tab profile/settings area
 
   @override
   void dispose() {

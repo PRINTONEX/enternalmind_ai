@@ -14,7 +14,6 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final _scrollController = ScrollController();
-  final int _currentNavIndex = 3; // Selected tab Profile/Settings
 
   @override
   void dispose() {

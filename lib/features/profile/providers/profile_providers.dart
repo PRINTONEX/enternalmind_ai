@@ -12,7 +12,7 @@ import '../../wizard/providers/wizard_providers.dart';
 
 // ── Family Members ──
 
-final profileFamilyMembersProvider = FutureProvider<List<FamilyMembersTableData>>((ref) async {
+final profileFamilyMembersProvider = FutureProvider.autoDispose<List<FamilyMembersTableData>>((ref) async {
   final dao = ref.watch(familyDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -21,7 +21,7 @@ final profileFamilyMembersProvider = FutureProvider<List<FamilyMembersTableData>
 
 // ── Education ──
 
-final profileEducationProvider = FutureProvider<List<EducationTableData>>((ref) async {
+final profileEducationProvider = FutureProvider.autoDispose<List<EducationTableData>>((ref) async {
   final dao = ref.watch(educationDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -30,7 +30,7 @@ final profileEducationProvider = FutureProvider<List<EducationTableData>>((ref) 
 
 // ── Career ──
 
-final profileCareerProvider = FutureProvider<List<CareerHistoryTableData>>((ref) async {
+final profileCareerProvider = FutureProvider.autoDispose<List<CareerHistoryTableData>>((ref) async {
   final dao = ref.watch(careerDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -39,7 +39,7 @@ final profileCareerProvider = FutureProvider<List<CareerHistoryTableData>>((ref)
 
 // ── Life Stories ──
 
-final profileLifeStoriesProvider = FutureProvider<List<LifeStoriesTableData>>((ref) async {
+final profileLifeStoriesProvider = FutureProvider.autoDispose<List<LifeStoriesTableData>>((ref) async {
   final dao = ref.watch(lifeStoriesDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -48,7 +48,7 @@ final profileLifeStoriesProvider = FutureProvider<List<LifeStoriesTableData>>((r
 
 // ── Life Places ──
 
-final profileLifePlacesProvider = FutureProvider<List<LifePlacesTableData>>((ref) async {
+final profileLifePlacesProvider = FutureProvider.autoDispose<List<LifePlacesTableData>>((ref) async {
   final dao = ref.watch(lifePlacesDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -57,7 +57,7 @@ final profileLifePlacesProvider = FutureProvider<List<LifePlacesTableData>>((ref
 
 // ── Daily Journals ──
 
-final profileDailyJournalsProvider = FutureProvider<List<DailyJournalsTableData>>((ref) async {
+final profileDailyJournalsProvider = FutureProvider.autoDispose<List<DailyJournalsTableData>>((ref) async {
   final dao = ref.watch(dailyJournalsDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -66,7 +66,7 @@ final profileDailyJournalsProvider = FutureProvider<List<DailyJournalsTableData>
 
 // ── Memories ──
 
-final profileMemoriesProvider = FutureProvider<List<MemoriesTableData>>((ref) async {
+final profileMemoriesProvider = FutureProvider.autoDispose<List<MemoriesTableData>>((ref) async {
   final dao = ref.watch(memoriesDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -75,7 +75,7 @@ final profileMemoriesProvider = FutureProvider<List<MemoriesTableData>>((ref) as
 
 // ── Photo Albums ──
 
-final profilePhotoAlbumsProvider = FutureProvider<List<PhotoAlbumsTableData>>((ref) async {
+final profilePhotoAlbumsProvider = FutureProvider.autoDispose<List<PhotoAlbumsTableData>>((ref) async {
   final dao = ref.watch(photoAlbumsDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -84,7 +84,7 @@ final profilePhotoAlbumsProvider = FutureProvider<List<PhotoAlbumsTableData>>((r
 
 // ── Photos ──
 
-final profilePhotosProvider = FutureProvider<List<PhotosTableData>>((ref) async {
+final profilePhotosProvider = FutureProvider.autoDispose<List<PhotosTableData>>((ref) async {
   final dao = ref.watch(photosDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -93,7 +93,7 @@ final profilePhotosProvider = FutureProvider<List<PhotosTableData>>((ref) async 
 
 // ── Voice Settings ──
 
-final profileVoiceSettingsProvider = FutureProvider<List<VoiceSettingsTableData>>((ref) async {
+final profileVoiceSettingsProvider = FutureProvider.autoDispose<List<VoiceSettingsTableData>>((ref) async {
   final dao = ref.watch(voiceSettingsDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -102,7 +102,7 @@ final profileVoiceSettingsProvider = FutureProvider<List<VoiceSettingsTableData>
 
 // ── Documents ──
 
-final profileDocumentsProvider = FutureProvider<List<DocumentsTableData>>((ref) async {
+final profileDocumentsProvider = FutureProvider.autoDispose<List<DocumentsTableData>>((ref) async {
   final dao = ref.watch(documentsDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -111,7 +111,7 @@ final profileDocumentsProvider = FutureProvider<List<DocumentsTableData>>((ref) 
 
 // ── Legacy Messages ──
 
-final profileLegacyMessagesProvider = FutureProvider<List<LegacyMessagesTableData>>((ref) async {
+final profileLegacyMessagesProvider = FutureProvider.autoDispose<List<LegacyMessagesTableData>>((ref) async {
   final dao = ref.watch(legacyMessagesDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -120,7 +120,7 @@ final profileLegacyMessagesProvider = FutureProvider<List<LegacyMessagesTableDat
 
 // ── Skills ──
 
-final profileSkillsProvider = FutureProvider<List<SkillsTableData>>((ref) async {
+final profileSkillsProvider = FutureProvider.autoDispose<List<SkillsTableData>>((ref) async {
   final dao = ref.watch(skillsDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -129,7 +129,7 @@ final profileSkillsProvider = FutureProvider<List<SkillsTableData>>((ref) async 
 
 // ── Interests ──
 
-final profileInterestsProvider = FutureProvider<List<InterestsTableData>>((ref) async {
+final profileInterestsProvider = FutureProvider.autoDispose<List<InterestsTableData>>((ref) async {
   final dao = ref.watch(interestsDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -138,7 +138,7 @@ final profileInterestsProvider = FutureProvider<List<InterestsTableData>>((ref) 
 
 // ── Goals ──
 
-final profileGoalsProvider = FutureProvider<List<GoalsTableData>>((ref) async {
+final profileGoalsProvider = FutureProvider.autoDispose<List<GoalsTableData>>((ref) async {
   final dao = ref.watch(goalsDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -147,7 +147,7 @@ final profileGoalsProvider = FutureProvider<List<GoalsTableData>>((ref) async {
 
 // ── Personality Traits ──
 
-final profilePersonalityTraitsProvider = FutureProvider<PersonalityTraitsTableData?>((ref) async {
+final profilePersonalityTraitsProvider = FutureProvider.autoDispose<PersonalityTraitsTableData?>((ref) async {
   final dao = ref.watch(personalityTraitsDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return null;
@@ -156,7 +156,7 @@ final profilePersonalityTraitsProvider = FutureProvider<PersonalityTraitsTableDa
 
 // ── Conversation Styles ──
 
-final profileConversationStylesProvider = FutureProvider<ConversationStylesTableData?>((ref) async {
+final profileConversationStylesProvider = FutureProvider.autoDispose<ConversationStylesTableData?>((ref) async {
   final dao = ref.watch(conversationStylesDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return null;
@@ -165,7 +165,7 @@ final profileConversationStylesProvider = FutureProvider<ConversationStylesTable
 
 // ── Favorites ──
 
-final profileFavoritesProvider = FutureProvider<List<FavoritesTableData>>((ref) async {
+final profileFavoritesProvider = FutureProvider.autoDispose<List<FavoritesTableData>>((ref) async {
   final dao = ref.watch(favoritesDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -174,7 +174,7 @@ final profileFavoritesProvider = FutureProvider<List<FavoritesTableData>>((ref) 
 
 // ── Languages ──
 
-final profileLanguagesProvider = FutureProvider<List<LanguagesTableData>>((ref) async {
+final profileLanguagesProvider = FutureProvider.autoDispose<List<LanguagesTableData>>((ref) async {
   final dao = ref.watch(languagesDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -183,7 +183,7 @@ final profileLanguagesProvider = FutureProvider<List<LanguagesTableData>>((ref) 
 
 // ── Timeline ──
 
-final profileTimelineProvider = FutureProvider<List<TimelineTableData>>((ref) async {
+final profileTimelineProvider = FutureProvider.autoDispose<List<TimelineTableData>>((ref) async {
   final dao = ref.watch(timelineDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];
@@ -192,7 +192,7 @@ final profileTimelineProvider = FutureProvider<List<TimelineTableData>>((ref) as
 
 // ── Daily Habits ──
 
-final profileDailyHabitsProvider = FutureProvider<DailyHabitsTableData?>((ref) async {
+final profileDailyHabitsProvider = FutureProvider.autoDispose<DailyHabitsTableData?>((ref) async {
   final dao = ref.watch(dailyHabitsDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return null;
@@ -201,7 +201,7 @@ final profileDailyHabitsProvider = FutureProvider<DailyHabitsTableData?>((ref) a
 
 // ── Values & Beliefs ──
 
-final profileValuesBeliefsProvider = FutureProvider<ValuesBeliefsTableData?>((ref) async {
+final profileValuesBeliefsProvider = FutureProvider.autoDispose<ValuesBeliefsTableData?>((ref) async {
   final dao = ref.watch(valuesBeliefsDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return null;
@@ -210,7 +210,7 @@ final profileValuesBeliefsProvider = FutureProvider<ValuesBeliefsTableData?>((re
 
 // ── Decision Profiles ──
 
-final profileDecisionProfilesProvider = FutureProvider<DecisionProfilesTableData?>((ref) async {
+final profileDecisionProfilesProvider = FutureProvider.autoDispose<DecisionProfilesTableData?>((ref) async {
   final dao = ref.watch(decisionProfilesDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return null;
@@ -219,7 +219,7 @@ final profileDecisionProfilesProvider = FutureProvider<DecisionProfilesTableData
 
 // ── Favorite Words ──
 
-final profileFavoriteWordsProvider = FutureProvider<List<FavoriteWordsTableData>>((ref) async {
+final profileFavoriteWordsProvider = FutureProvider.autoDispose<List<FavoriteWordsTableData>>((ref) async {
   final dao = ref.watch(favoriteWordsDaoProvider);
   final id = ref.watch(activeProfileIdProvider);
   if (id == null) return [];

@@ -5,8 +5,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 
+import 'core/widgets/error/global_error_boundary.dart';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Premium Global Error Boundary Setup
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+  };
+
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return GlobalErrorScreen(
+      errorMessage: details.exceptionAsString(),
+    );
+  };
 
   // Set preferred orientations
   SystemChrome.setPreferredOrientations([

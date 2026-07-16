@@ -13,7 +13,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_gradients.dart';
 import '../../constants/ui_constants.dart';
 
-enum _GradientButtonVariant { primary, secondary, text }
+enum GradientButtonVariant { primary, secondary, text }
 
 /// {@macro gradient_button}
 class GradientButton extends StatefulWidget {
@@ -22,7 +22,7 @@ class GradientButton extends StatefulWidget {
     required this.label,
     this.onPressed,
     this.icon,
-    this.variant = _GradientButtonVariant.primary,
+    this.variant = GradientButtonVariant.primary,
     this.width,
     this.height = 48,
     this.loading = false,
@@ -37,7 +37,7 @@ class GradientButton extends StatefulWidget {
     this.width,
     this.height = 48,
     this.loading = false,
-  }) : variant = _GradientButtonVariant.primary;
+  }) : variant = GradientButtonVariant.primary;
 
   /// Secondary glass style button.
   const GradientButton.secondary({
@@ -48,7 +48,7 @@ class GradientButton extends StatefulWidget {
     this.width,
     this.height = 48,
     this.loading = false,
-  }) : variant = _GradientButtonVariant.secondary;
+  }) : variant = GradientButtonVariant.secondary;
 
   /// Text-only button.
   const GradientButton.text({
@@ -59,12 +59,12 @@ class GradientButton extends StatefulWidget {
     this.width,
     this.height = 48,
     this.loading = false,
-  }) : variant = _GradientButtonVariant.text;
+  }) : variant = GradientButtonVariant.text;
 
   final String label;
   final VoidCallback? onPressed;
   final Widget? icon;
-  final _GradientButtonVariant variant;
+  final GradientButtonVariant variant;
   final double? width;
   final double height;
   final bool loading;
@@ -158,7 +158,7 @@ class _GradientButtonState extends State<GradientButton>
 
   BoxDecoration _buildDecoration() {
     switch (widget.variant) {
-      case _GradientButtonVariant.primary:
+      case GradientButtonVariant.primary:
         return BoxDecoration(
           gradient: AppGradients.neonPurple,
           borderRadius: BorderRadius.circular(RadiusConstants.sm),
@@ -170,13 +170,13 @@ class _GradientButtonState extends State<GradientButton>
             ),
           ],
         );
-      case _GradientButtonVariant.secondary:
+      case GradientButtonVariant.secondary:
         return BoxDecoration(
           color: AppColors.surfaceGlass,
           borderRadius: BorderRadius.circular(RadiusConstants.sm),
           border: Border.all(color: AppColors.glassBorder),
         );
-      case _GradientButtonVariant.text:
+      case GradientButtonVariant.text:
         return BoxDecoration(
           borderRadius: BorderRadius.circular(RadiusConstants.sm),
         );
@@ -185,7 +185,7 @@ class _GradientButtonState extends State<GradientButton>
 
   Widget _buildContent() {
     final style = TextStyle(
-      color: widget.variant == _GradientButtonVariant.primary
+      color: widget.variant == GradientButtonVariant.primary
           ? Colors.white
           : AppColors.textPrimary,
       fontSize: 14,
@@ -214,7 +214,7 @@ class _GradientButtonState extends State<GradientButton>
       child: CircularProgressIndicator(
         strokeWidth: 2,
         valueColor: AlwaysStoppedAnimation<Color>(
-          widget.variant == _GradientButtonVariant.primary
+          widget.variant == GradientButtonVariant.primary
               ? Colors.white
               : AppColors.textPrimary,
         ),

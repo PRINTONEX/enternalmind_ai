@@ -16,7 +16,6 @@ class TimelineScreen extends ConsumerStatefulWidget {
 
 class _TimelineScreenState extends ConsumerState<TimelineScreen> {
   final _scrollController = ScrollController();
-  final int _currentNavIndex = 2; // Selected tab for Memories/Timeline area
 
   @override
   void dispose() {

@@ -135,8 +135,9 @@ class _ImportScreenState extends ConsumerState<ImportScreen>
     // ── Navigate to dashboard on import success ──
     ref.listen(importProvider, (ImportState? prev, ImportState next) {
       if (next.importSuccess && !(prev?.importSuccess ?? false) && mounted) {
+        final router = GoRouter.of(context);
         Future.delayed(const Duration(milliseconds: 1200), () {
-          if (mounted) context.go(RouteNames.dashboard);
+          if (mounted) router.go(RouteNames.dashboard);
         });
       }
     });
